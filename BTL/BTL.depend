@@ -1,0 +1,12 @@
+# depslib dependency file v1.0
+1679116981 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
+	<SDL.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+	<SDL_mixer.h>
+	<vector>
+	<SDL_ttf.h>
+	<cstdlib>
+	<queue>
+
