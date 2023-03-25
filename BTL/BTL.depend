@@ -1,12 +1,31 @@
 # depslib dependency file v1.0
-1679116981 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
+1679628868 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
 	<SDL.h>
 	<SDL_image.h>
 	<stdio.h>
 	<string>
-	<SDL_mixer.h>
-	<vector>
-	<SDL_ttf.h>
 	<cstdlib>
-	<queue>
+	<sstream>
+	<SDL_ttf.h>
+	<vector>
+	<iostream>
+	"LTexture.h"
+	"Food.h"
+	"Shuriken.h"
+	"LTimer.h"
+	"Enemy.h"
+	"Dot.h"
+
+1679580730 c:\users\acer\downloads\ltnc\sdltest\btl\ltexture.h
+
+1679564602 c:\users\acer\downloads\ltnc\sdltest\btl\food.h
+
+1679623143 c:\users\acer\downloads\ltnc\sdltest\btl\shuriken.h
+
+1679578194 c:\users\acer\downloads\ltnc\sdltest\btl\ltimer.h
+
+1679590355 c:\users\acer\downloads\ltnc\sdltest\btl\enemy.h
+
+1679626860 c:\users\acer\downloads\ltnc\sdltest\btl\dot.h
+	"Shuriken.h"
 

@@ -1,7 +1,0 @@
-# depslib dependency file v1.0
-1678683890 source:c:\users\acer\downloads\ltnc\sdltest\27_vat_can_doi_tuong\27.cpp
-	<SDL.h>
-	<SDL_image.h>
-	<stdio.h>
-	<string>
-

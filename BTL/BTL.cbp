@@ -32,6 +32,11 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="BTL.cpp" />
+		<Unit filename="Dot.h" />
+		<Unit filename="Enemy.h" />
+		<Unit filename="Food.h" />
+		<Unit filename="LTexture.h" />
+		<Unit filename="Shuriken.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
