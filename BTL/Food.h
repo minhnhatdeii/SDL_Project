@@ -26,8 +26,8 @@ class Food
 		//Shows the dot on the screen
 		void render();
 
-        void set_type(int a) {food_type=a;}
-
+        void set_type(unsigned int &a) {food_type=a;}
+        int get_type () {return food_type;}
 		SDL_Rect getRect() {return Food_Rect;}
     private:
         //The X and Y offsets of the dot
@@ -39,7 +39,7 @@ class Food
 		//Dot's collision box
 		SDL_Rect Food_Rect;
 
-		int food_type;
+		unsigned int food_type;
 };
 Food::Food()
 {
@@ -69,6 +69,6 @@ void Food::move(SDL_Rect a)
 void Food::render()
 {
     //Show the dot
-	gFoodTexture.render( mPosX, mPosY );
+	gFoodTexture.render( mPosX, mPosY, FOOD_WIDTH, FOOD_HEIGHT );
 }
 #endif // FOOD_H_

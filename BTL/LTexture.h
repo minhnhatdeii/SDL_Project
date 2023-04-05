@@ -12,15 +12,14 @@ class LTexture
 		//Loads image at specified path
 		bool loadFromFile( std::string path );
 
-		#if defined(SDL_TTF_MAJOR_VERSION)
 		//Creates image from font string
 		bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
-		#endif
+
 		//Deallocates texture
 		void free();
 
 		//Renders texture at given point
-		void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
+		void render( int x, int y, int Width, int Height, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
 
 		//Gets image dimensions
 		int getWidth();
@@ -138,17 +137,17 @@ void LTexture::free()
 }
 
 
-void LTexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
+void LTexture::render( int x, int y, int Width, int Height, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
 {
 	//Set rendering space and render to screen
-	SDL_Rect renderQuad = { x, y, mWidth, mHeight };
+	SDL_Rect renderQuad = { x, y, Width, Height };
 
 	//Set clip rendering dimensions
-	if( clip != NULL )
-	{
-		renderQuad.w = clip->w;
-		renderQuad.h = clip->h;
-	}
+	//if( clip != NULL )
+	//{
+		//renderQuad.w = clip->w;
+		//renderQuad.h = clip->h;
+	//}
 
 	//Render to screen
 	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
@@ -163,4 +162,5 @@ int LTexture::getHeight()
 {
 	return mHeight;
 }
+
 #endif // LTEXTURE_H_
