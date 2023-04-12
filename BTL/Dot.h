@@ -15,11 +15,9 @@ class Dot
 		//The dimensions of the dot
 		static const int DOT_WIDTH = 60;
 		static const int DOT_HEIGHT = 80;
-        static const int KUNAI_DOT_WIDTH = 8;
-		static const int KUNAI_DOT_HEIGHT = 40;
 		//Maximum axis velocity of the dot
 		static const int DOT_VEL = 5;
-		static const int DOT_AMO_VEL = 10;
+        int L_DOT_AMO_VEL = 7;
 
 
 		//Initializes the variables
@@ -29,7 +27,7 @@ class Dot
 		void handleEvent( SDL_Event& e );
 
 		//Moves the dot and checks collision
-		void move(  );
+		void move();
 
         SDL_Rect getRect()
         {
@@ -43,6 +41,9 @@ class Dot
         void remove_amo(int &x);
         int get_dot_status() {return dot_status;}
         void set_dot_status(int a) {dot_status = a;}
+        int get_type_amo() {return dot_type_amo;}
+        void set_type_amo(int a) {dot_type_amo=a;}
+        void set_dot_amo_vel(int a) {L_DOT_AMO_VEL=a;}
 
     private:
 		//The X and Y offsets of the dot
@@ -54,11 +55,11 @@ class Dot
 		//Dot's collision box
 		SDL_Rect Dot_Rect;
 		int dot_status;
-		int step_img_dot_stand=1;
-        int step_img_dot_up=1;
-        int step_img_dot_down=1;
-        int step_img_dot_left=1;
-        int step_img_dot_right=1;
+		int step_img_dot_stand=0;
+        int step_img_dot_up=0;
+        int step_img_dot_down=0;
+        int step_img_dot_left=0;
+        int step_img_dot_right=0;
         bool dot_move_img;
         int solve_bug=0;
         int count_img_dot_stand=1;
@@ -66,6 +67,8 @@ class Dot
         int count_img_dot_down=1;
         int count_img_dot_left=1;
         int count_img_dot_right=1;
+
+        int dot_type_amo ;
         std::vector<Shuriken*> p_amo_list;
 };
 Dot::Dot()
@@ -78,6 +81,7 @@ Dot::Dot()
 	Dot_Rect.w = DOT_WIDTH;
 	Dot_Rect.h = DOT_HEIGHT;
     dot_move_img = false;
+    dot_type_amo = 0;
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
@@ -109,8 +113,6 @@ Dot::~Dot()
 }
 void Dot::remove_amo(int &x)
 {
-
-
         if (x<p_amo_list.size() && x>=0)
         {
             Shuriken* p_amo = p_amo_list.at(x);
@@ -166,10 +168,7 @@ void Dot::handleEvent( SDL_Event& e )
         {
             dot_move_img = false;
         }
-        else if (solve_bug>0)
-        {
-
-        }
+        //solve bug advance
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
@@ -197,22 +196,23 @@ void Dot::handleEvent( SDL_Event& e )
     }
     else if( e.type == SDL_MOUSEBUTTONDOWN && dot_amo_rate>=reload_dot_amo )
     {
+        //std::cout<<1;
         Shuriken* p_amo = new Shuriken();
         if (e.button.button == SDL_BUTTON_LEFT)
         {
             dot_move_img = false;
             Mix_PlayChannel( -1, gKunai, 0 );
-            if( !gShurikenTexture.loadFromFile( "kunai.png" ) )
-            {
-                printf( "Failed to load Shuriken texture!\n" );
-            }
-            p_amo->set_amo_vel(DOT_AMO_VEL);
-            p_amo->setwidthheight(KUNAI_DOT_WIDTH,KUNAI_DOT_HEIGHT);
+            p_amo->set_amo_vel(L_DOT_AMO_VEL);
             p_amo->setRect(mPosX+DOT_WIDTH/2,mPosY);
             p_amo->set_is_move(true);
+            p_amo->set_shurikentype(type_amo);
+            //std::cout<<type_amo;
             p_amo_list.push_back(p_amo);
+
         }
         dot_amo_rate=0;
+        //std::cout<<p_amo_list.size();
+
     }
 }
 
@@ -253,6 +253,7 @@ void Dot:: MakeAmo()
         {
             if (p_amo->get_is_move())
             {
+                //std::cout<<p_amo->get_shurikentype();
                 p_amo->move();
                 p_amo->render();
             }
@@ -279,13 +280,18 @@ void Dot::render()
             gDotTexture_Stand[step_img_dot_stand].render( mPosX, mPosY, DOT_WIDTH, DOT_HEIGHT,&stand );
             if (count_img_dot_stand>SPEED_ANIMATION) {step_img_dot_stand ++;count_img_dot_stand=1;}
 
-        if (step_img_dot_stand>NUM_IMG_DOT_STAND) step_img_dot_stand=1;
-            step_img_dot_right =1;
-            step_img_dot_up = 1;
-            step_img_dot_left = 1;
-            step_img_dot_down = 1;
-            count_img_dot_stand++;
 
+        if (step_img_dot_stand>=NUM_IMG_DOT_STAND) step_img_dot_stand=0;
+            step_img_dot_right =0;
+            step_img_dot_up = 0;
+            step_img_dot_left = 0;
+            step_img_dot_down = 0;
+
+            count_img_dot_stand ++;
+            count_img_dot_up=1;
+            count_img_dot_down=1;
+            count_img_dot_left=1;
+            count_img_dot_right=1;
     }
     //MOVE
     else if (dot_move_img == true)
@@ -298,11 +304,15 @@ void Dot::render()
             move_up.w=144;
             move_up.h=192;
             gDotTexture_Move[step_img_dot_up].render( mPosX, mPosY, DOT_WIDTH, DOT_HEIGHT,&move_up );
+
             if (count_img_dot_up>SPEED_ANIMATION) {step_img_dot_up ++;count_img_dot_up=1;}
-            step_img_dot_down = 1;
-            step_img_dot_left = 1;
-            step_img_dot_right = 1;
-            count_img_dot_up ++;
+            if (step_img_dot_up>=NUM_IMG_DOT_MOVE) step_img_dot_up=0;
+            step_img_dot_down = 0;
+            step_img_dot_left = 0;
+            step_img_dot_right = 0;
+
+            count_img_dot_stand=1;
+            count_img_dot_up++;
             count_img_dot_down=1;
             count_img_dot_left=1;
             count_img_dot_right=1;
@@ -315,12 +325,17 @@ void Dot::render()
             move_down.w= 149;
             move_down.h = 188;
                 gDotTexture_Move[step_img_dot_down].render( mPosX, mPosY, DOT_WIDTH, DOT_HEIGHT ,&move_down);
+
             if (count_img_dot_down>SPEED_ANIMATION) {step_img_dot_down ++;count_img_dot_down=1;}
-            step_img_dot_up = 1;
-            step_img_dot_left = 1;
-            step_img_dot_right = 1;
-            count_img_dot_down ++;
+            if (step_img_dot_down>=NUM_IMG_DOT_MOVE) step_img_dot_down=0;
+            step_img_dot_up = 0;
+            step_img_dot_left = 0;
+            step_img_dot_right = 0;
+            step_img_dot_stand = 0;
+
+            count_img_dot_stand=1;
             count_img_dot_up=1;
+            count_img_dot_down++;
             count_img_dot_left=1;
             count_img_dot_right=1;
         }
@@ -334,13 +349,18 @@ void Dot::render()
             SDL_RendererFlip flipType = SDL_FLIP_HORIZONTAL;
 
                 gDotTexture_Move[step_img_dot_left].render( mPosX, mPosY, DOT_WIDTH, DOT_HEIGHT ,&move_left,0,NULL,flipType);
-            if (count_img_dot_left > SPEED_ANIMATION) {step_img_dot_left ++;count_img_dot_left=1;}
-            step_img_dot_up = 1;
-            step_img_dot_down = 1;
-            step_img_dot_right = 1;
-            count_img_dot_left ++;
-            count_img_dot_down=1;
+
+            if (count_img_dot_left>SPEED_ANIMATION) {step_img_dot_left ++;count_img_dot_left=1;}
+            if (step_img_dot_left>=NUM_IMG_DOT_MOVE) step_img_dot_left=0;
+            step_img_dot_down = 0;
+            step_img_dot_up = 0;
+            step_img_dot_right = 0;
+            step_img_dot_stand = 0;
+
+            count_img_dot_stand=1;
             count_img_dot_up=1;
+            count_img_dot_down=1;
+            count_img_dot_left++;
             count_img_dot_right=1;
         }
         else if (dot_status == RIGHT)
@@ -351,19 +371,24 @@ void Dot::render()
             move_right.w=171;
             move_right.h=182;
                 gDotTexture_Move[step_img_dot_right].render( mPosX, mPosY, DOT_WIDTH, DOT_HEIGHT,&move_right );
-            if (count_img_dot_right>SPEED_ANIMATION) step_img_dot_right ++;
-            step_img_dot_up = 1;
-            step_img_dot_left = 1;
-            step_img_dot_down = 1;
-            count_img_dot_right ++;
+
+            if (count_img_dot_right>SPEED_ANIMATION) {step_img_dot_right ++;count_img_dot_right=1;}
+            if (step_img_dot_right>=NUM_IMG_DOT_MOVE) step_img_dot_right=0;
+            step_img_dot_up = 0;
+            step_img_dot_left = 0;
+            step_img_dot_down = 0;
+            step_img_dot_stand = 0;
+
+            count_img_dot_stand=1;
+            count_img_dot_up=1;
             count_img_dot_down=1;
             count_img_dot_left=1;
-            count_img_dot_up=1;
+            count_img_dot_right++;
         }
-        if (step_img_dot_up>NUM_IMG_DOT_MOVE) step_img_dot_up=1;
-        if (step_img_dot_down>NUM_IMG_DOT_MOVE) step_img_dot_down=1;
-        if (step_img_dot_left>NUM_IMG_DOT_MOVE) step_img_dot_left=1;
-        if (step_img_dot_right>NUM_IMG_DOT_MOVE) step_img_dot_right=1;
+        if (step_img_dot_up>=NUM_IMG_DOT_MOVE) step_img_dot_up=0;
+        if (step_img_dot_down>=NUM_IMG_DOT_MOVE) step_img_dot_down=0;
+        if (step_img_dot_left>=NUM_IMG_DOT_MOVE) step_img_dot_left=0;
+        if (step_img_dot_right>=NUM_IMG_DOT_MOVE) step_img_dot_right=0;
     }
 
 
