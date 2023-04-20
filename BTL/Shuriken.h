@@ -22,7 +22,7 @@ class Shuriken
         ~Shuriken();
 		//Moves the dot and checks collision
 		void move();
-        void set_amo_vel(const int x) {SHURIKEN_VEL=x;}
+        void set_amo_vel( int x) {SHURIKEN_VEL=x;}
 		//Shows the dot on the screen
 		void render();//minh
 		void render2();//dich
@@ -96,38 +96,43 @@ Shuriken::~Shuriken()
 //me
 void Shuriken::move()
 {
-    if (shuriken_type == 0 )
+    if (bool_pause == false&& bool_game_over == false)
     {
-        SHURIKEN_WIDTH = 20;
-        SHURIKEN_HEIGHT = 40;
-        mPosY-=SHURIKEN_VEL;
-        if (mPosY<=0) {is_move=false;}
-        Shuriken_Rect.x=mPosX;
-        Shuriken_Rect.y=mPosY;
+        if (shuriken_type == 0 )
+        {
+            SHURIKEN_WIDTH = 20;
+            SHURIKEN_HEIGHT = 40;
+            mPosY-=SHURIKEN_VEL;
+            if (mPosY<=0) {is_move=false;}
+            Shuriken_Rect.x=mPosX;
+            Shuriken_Rect.y=mPosY;
 
+        }
+        else if (shuriken_type == 1 || shuriken_type == 2 || shuriken_type == 3)
+        {
+            SHURIKEN_WIDTH = 30;
+            SHURIKEN_HEIGHT = 60;
+            mPosY-=SHURIKEN_VEL;
+            if (mPosY<=0) {is_move=false;}
+            Shuriken_Rect.x=mPosX;
+            Shuriken_Rect.y=mPosY;
+        }
     }
-    else if (shuriken_type == 1 || shuriken_type == 2 || shuriken_type == 3)
-    {
-        SHURIKEN_WIDTH = 30;
-        SHURIKEN_HEIGHT = 60;
-        mPosY-=SHURIKEN_VEL;
-        if (mPosY<=0) {is_move=false;}
-        Shuriken_Rect.x=mPosX;
-        Shuriken_Rect.y=mPosY;
-    }
-
 }
 //enemy
 void Shuriken::move2()
 {
-    //Move the dot left or right
-    mPosY+=SHURIKEN_VEL;
-    if (mPosY+SHURIKEN_HEIGHT>=SCREEN_HEIGHT || mPosY<0) {is_move=false;}
-    Shuriken_Rect.x=mPosX;
-    Shuriken_Rect.y=mPosY;
+    if (bool_pause == false&& bool_game_over == false)
+    {
+        mPosY+=SHURIKEN_VEL;
+        if (mPosY+SHURIKEN_HEIGHT>=SCREEN_HEIGHT || mPosY<0) {is_move=false;}
+        Shuriken_Rect.x=mPosX;
+        Shuriken_Rect.y=mPosY;
+    }
 
 
 }
+
 void Shuriken::render()//ta
 {
     if (shuriken_type == 0)

@@ -18,6 +18,15 @@ class LTexture
 		//Deallocates texture
 		void free();
 
+		//Set color modulation
+		void setColor( Uint8 red, Uint8 green, Uint8 blue );
+
+		//Set blending
+		void setBlendMode( SDL_BlendMode blending );
+
+		//Set alpha modulation
+		void setAlpha( Uint8 alpha );
+
 		//Renders texture at given point
 		void render( int x, int y, int Width, int Height, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
 
@@ -135,7 +144,23 @@ void LTexture::free()
 		mHeight = 0;
 	}
 }
+void LTexture::setColor( Uint8 red, Uint8 green, Uint8 blue )
+{
+	//Modulate texture rgb
+	SDL_SetTextureColorMod( mTexture, red, green, blue );
+}
 
+void LTexture::setBlendMode( SDL_BlendMode blending )
+{
+	//Set blending function
+	SDL_SetTextureBlendMode( mTexture, blending );
+}
+
+void LTexture::setAlpha( Uint8 alpha )
+{
+	//Modulate texture alpha
+	SDL_SetTextureAlphaMod( mTexture, alpha );
+}
 
 void LTexture::render( int x, int y, int Width, int Height, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
 {

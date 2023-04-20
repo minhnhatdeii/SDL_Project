@@ -18,17 +18,26 @@ const int SCREEN_WIDTH = 500;
 const int SCREEN_HEIGHT = 750;
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
+const int MAX_NUM_ENEMY_1 =7;
+const int MAX_NUM_ENEMY_2=7;
+const int MAX_NUM_ENEMY_3=7;
+int NUM_ENEMY3 =1;
 int NUM_ENEMY1 = 3;
 int NUM_ENEMY2 = 3;
 const int ENEMY1_HEART = 2;
 const int ENEMY1_VEL = 2;
 const double ENEMY2_VEL = 1;
 const int ENEMY2_HEART = 1;
+const double ENEMY3_VEL = 1;
+const int ENEMY3_HEART = 1;
+
 const int SPEED_BACKGROUND = 1;
+
 const int NUM_IMG_DOT_MOVE=9;
 const int NUM_IMG_DOT_STAND=6;
 const int NUM_IMG_ENEMY1=6;
 const int NUM_IMG_ENEMY2=7;
+const int NUM_IMG_ENEMY3=7;
 const int NUM_IMG_AMO_DOT = 9;
 const int NUM_IMG_SPECIAL_AMO = 8;
 const int NUM_IMG_AMO_ENEMY2 = 7;
@@ -36,17 +45,23 @@ const int NUM_IMG_FOOD_HEART=8;
 const int NUM_IMG_FOOD_RED=5;
 const int NUM_IMG_FOOD_YELLOW=9;
 const int NUM_IMG_FOOD_PURPLE=9;
+//MENU
+const int NUM_ITEM_MENU = 3;
+const int NUM_ITEM_PAUSE = 3;
+const int NUM_ITEM_GAMEOVER = 3;
 
+bool bool_pause=false;
+bool bool_game_over = false;
 std::string char_tmp;
 int type_amo = 0;
 int time_special_amo = SCREEN_FPS*7;
 int count_remain_special_amo = 0;
 int DOT_HEART = 3;
-const int COMMON_DOT_AMO_VEL = 7;//dot_amo_vel
-const int MAX_DOT_AMO_VEL = 20;//dot_amo_vel
+int COMMON_DOT_AMO_VEL = 7;//dot_amo_vel
+int MAX_DOT_AMO_VEL = 20;//dot_amo_vel
 const int MAX_DOT_HEART = 3;
 int SCORE =0;
-int HIGH_SCORE;
+int HIGH_SCORE=0;
 int time;
 const int MAX_DAMAGE_AMO = 2;
 const int COMMON_DAMAGE_AMO = 1;
@@ -70,6 +85,7 @@ int reload_dot_amo = common_reload_dot_amo;
 std::string path_img_dot_stand="";
 std::string path_img_dot_move="";
 std::string path_img_enemy1="";
+std::string path_img_enemy3="";
 std::string path_img_enemy2="";
 std::string path_img_amo_enemy2="";
 std::string path_img_amo_dot="";
@@ -121,14 +137,20 @@ bool checkCollision( SDL_Rect a, SDL_Rect b );
 SDL_Window* gWindow = NULL;
 
 TTF_Font* gFont = NULL;
-TTF_Font* gFont2 = NULL;
+/*TTF_Font* gFont2 = NULL;
 TTF_Font* gFont3 = NULL;
+TTF_Font* gMenu_Font = NULL;
+*/
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
 #include "LTexture.h"
 
 LTexture gBackground;
+LTexture gMenu_IMG;
+LTexture gTutorial_IMG;
+LTexture gPause_IMG;
+LTexture gGameOver_IMG;
 //Scene textures
 LTexture gDotTexture_Stand[NUM_IMG_DOT_STAND];//ban than
 LTexture gDotTexture_Move[NUM_IMG_DOT_MOVE];
@@ -145,17 +167,31 @@ LTexture gShuriken2Texture[NUM_IMG_AMO_ENEMY2];//dan dich
 
 LTexture gEnemy1Texture[NUM_IMG_ENEMY1];//dich
 LTexture gEnemy2Texture[NUM_IMG_ENEMY2];//dich2
+LTexture gEnemy3Texture[NUM_IMG_ENEMY3];//dich2
+
 
 LTexture gTextTexture;//heart
 LTexture gTextTexture2;//score
 LTexture gTextTexture3;//time
+LTexture gTextHighScore;//highscore
+LTexture gTextMenu[NUM_ITEM_MENU];//menu
+LTexture gTextPause[NUM_ITEM_PAUSE];//pause
+LTexture gTextGameOver[NUM_ITEM_GAMEOVER];//gameover
+LTexture gTutorial_Text;
 
+LTexture pause_on_play;
+LTexture button_img;
+LTexture button_pause_img[NUM_ITEM_PAUSE];
+LTexture button_gameover_img[NUM_ITEM_GAMEOVER];
 
 Mix_Chunk *gKunai = NULL;
 
 Mix_Chunk *gEnemyHurt = NULL;
 
 Mix_Chunk* gPickItem = NULL;
+
+Mix_Chunk* gMenuClick = NULL;
+Mix_Chunk* gMenuMotion = NULL;
 
 //food
 #include "Food.h"
@@ -239,6 +275,52 @@ bool loadMedia()
 {
 	//Loading success flag
 	bool success = true;
+    if( !button_img.loadFromFile( "button.png" ) )
+	{
+		printf( "Failed to load button texture!\n" );
+		success = false;
+	}
+	for(int i=0;i<NUM_ITEM_PAUSE;i++)
+    {
+         if( !button_pause_img[i].loadFromFile( "motion_button.png" ) )
+        {
+            printf( "Failed to load button texture!\n" );
+            success = false;
+        }
+    }
+    for(int i=0;i<NUM_ITEM_GAMEOVER;i++)
+    {
+         if( !button_gameover_img[i].loadFromFile( "motion_button.png" ) )
+        {
+            printf( "Failed to load button texture!\n" );
+            success = false;
+        }
+    }
+    if( !gGameOver_IMG.loadFromFile( "gameover.png" ) )
+	{
+		printf( "Failed to load button texture!\n" );
+		success = false;
+	}
+	if( !gPause_IMG.loadFromFile( "pause_img.png" ) )
+	{
+		printf( "Failed to load button texture!\n" );
+		success = false;
+	}
+	if( !pause_on_play.loadFromFile( "motion_button.png" ) )
+	{
+		printf( "Failed to load mottion button texture!\n" );
+		success = false;
+	}
+    if( !gMenu_IMG.loadFromFile( "menu.png" ) )
+	{
+		printf( "Failed to load background texture!\n" );
+		success = false;
+	}
+	if( !gTutorial_IMG.loadFromFile( "tutorial.png" ) )
+	{
+		printf( "Failed to load background texture!\n" );
+		success = false;
+	}
 
 	if( !gBackground.loadFromFile( "theway.jpg" ) )
 	{
@@ -254,18 +336,7 @@ bool loadMedia()
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
 
     }
-    gFont2 = TTF_OpenFont( "font.ttf", 42 );
-    if( gFont2 == NULL )
-    {
-        printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
 
-    }
-    gFont3 = TTF_OpenFont( "font.ttf", 42 );
-    if( gFont3 == NULL )
-    {
-        printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
-
-    }
     //end font
     //sound
 	gKunai = Mix_LoadWAV( "kunaieffect.wav" );
@@ -284,6 +355,18 @@ bool loadMedia()
 	if( gPickItem == NULL )
 	{
 		printf( "Failed to load kunai sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+	gMenuClick = Mix_LoadWAV( "menu_click.mp3" );
+	if( gMenuClick == NULL )
+	{
+		printf( "Failed to load menuclick sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+	gMenuMotion = Mix_LoadWAV( "menu_motion.wav" );
+	if( gMenuMotion == NULL )
+	{
+		printf( "Failed to load menumotion sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
 		success = false;
 	}
 
@@ -376,6 +459,17 @@ bool loadMedia()
         }
         path_img_enemy2="";
     }
+    //enemy3
+    for (int i=0;i<NUM_IMG_ENEMY3;i++)
+    {
+        path_img_enemy3 = path_img_enemy3 + "monster_removebg/monster (" + char(i+1+'0') + ").png";
+        if( !gEnemy3Texture[i].loadFromFile(path_img_enemy3 ) )
+        {
+            printf( "Failed to load dot texture!\n" );
+
+        }
+        path_img_enemy3="";
+    }
     //amo_dot
     for (int i=0;i<NUM_IMG_AMO_DOT;i++)
     {
@@ -415,11 +509,30 @@ bool loadMedia()
 
 void close()
 {
+    gPause_IMG.free();
+    gGameOver_IMG.free();
+    pause_on_play.free();
+    button_img.free();
+
 	for (int i=0;i<NUM_IMG_DOT_STAND;i++)
 	gDotTexture_Stand[i].free();
 	for (int i=0;i<NUM_IMG_DOT_MOVE;i++)
 	gDotTexture_Move[i].free();
 
+    for (int i=0;i<NUM_ITEM_PAUSE;i++)
+	button_pause_img[i].free();
+
+    for (int i=0;i<NUM_ITEM_PAUSE;i++)
+	gTextPause[i].free();
+
+	for (int i=0;i<NUM_ITEM_GAMEOVER;i++)
+	button_gameover_img[i].free();
+
+    for (int i=0;i<NUM_ITEM_GAMEOVER;i++)
+	gTextGameOver[i].free();
+
+    gMenu_IMG.free();
+    gTutorial_IMG.free();
 	for (int i=0;i<NUM_IMG_FOOD_HEART;i++)
     gFoodTexture1[i].free();
     for (int i=0;i<NUM_IMG_FOOD_RED;i++)
@@ -442,16 +555,18 @@ void close()
     gEnemy1Texture[i].free();
     for (int i=0;i<NUM_IMG_ENEMY2;i++)
     gEnemy2Texture[i].free();
+    for (int i=0;i<NUM_IMG_ENEMY3;i++)
+    gEnemy3Texture[i].free();
 
     TTF_CloseFont( gFont );
 	gFont = NULL;
-	TTF_CloseFont( gFont2 );
-	gFont2 = NULL;
-	TTF_CloseFont( gFont3 );
-	gFont3 = NULL;
+
     gTextTexture.free();
     gTextTexture2.free();
     gTextTexture3.free();
+    for (int i =0 ;i<NUM_ITEM_MENU;i++)
+    gTextMenu[i].free();
+    gTutorial_Text.free();
 	//Destroy window
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
@@ -464,6 +579,10 @@ void close()
     gEnemyHurt = NULL;
     Mix_FreeChunk(gPickItem);
     gPickItem = NULL;
+    Mix_FreeChunk(gMenuClick);
+    gMenuClick = NULL;
+    Mix_FreeChunk(gMenuMotion);
+    gMenuMotion = NULL;
 
 	//Quit SDL subsystems
 	TTF_Quit();
@@ -517,9 +636,388 @@ bool checkCollision( SDL_Rect a, SDL_Rect b )
     return true;
 }
 
+int tutorial()
+{
+    gTutorial_IMG.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+    SDL_Color white = { 255,255,255};
+    if( !gTutorial_Text.loadFromRenderedText("PLAY GAME" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+        SDL_Rect button;
+        button = {77,592,354,92};
+    SDL_Event tutorial_event;
+    int x_mouse=0,y_mouse=0;
+    bool click = false;
+    while (true)
+    {
+        gTutorial_Text.render(122,608,252,58);
+
+        while (SDL_PollEvent(&tutorial_event))
+        {
+            switch (tutorial_event.type)
+            {
+                case SDL_QUIT:
+                    return 1;
+                case SDL_MOUSEMOTION:
+                    {
+                     x_mouse = tutorial_event.motion.x;
+                     y_mouse = tutorial_event.motion.y;
+                         if (x_mouse >=button.x && x_mouse <= button.x+button.w && y_mouse >= button.y && y_mouse <=button.y+button.h)
+                         {
+                             gTutorial_Text.setColor(255,255,0);
+                         }
+                         else
+                         {
+                             gTutorial_Text.setColor(255,255,255);
+                         }
+                     }
+                    break;
+                    case SDL_MOUSEBUTTONDOWN:
+                    {
+                         x_mouse = tutorial_event.motion.x;
+                         y_mouse = tutorial_event.motion.y;
+                             if (x_mouse >=button.x && x_mouse <= button.x+button.w && y_mouse >= button.y && y_mouse <=button.y+button.h)
+                             {
+                                 click = true;
+                                 if (click == true) {Mix_PlayChannel( -1, gMenuClick, 0 );click=false;}
+                                 return 0;
+                             }
+                   // break;
+                    }
+                    default:
+                    break;
+                    }
+                }
+            SDL_RenderPresent( gRenderer );
+        }
+
+    return 1;
+}
+int menu()
+{
+
+    gMenu_IMG.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+    SDL_Color white = { 255,255,255};
+    SDL_Color yellow = {255,255,0};
+
+    if( !gTextMenu[0].loadFromRenderedText("PLAY GAME" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+    if( !gTextMenu[1].loadFromRenderedText("EXIT" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+     if( !gTextMenu[2].loadFromRenderedText("HOW TO PLAY" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+        SDL_Rect button[NUM_ITEM_MENU];
+        button[0] = {120,380,260,60};
+        button[1] = {120,480,260,60};
+        button[2] = {120,580,260,60};
+    SDL_Event menu_event;
+    int check_tutorial;
+    int x_mouse=0,y_mouse=0;
+    while (true)
+    {
+        gTextMenu[0].render(120,380,260,60);
+        gTextMenu[1].render(170,480,140,60);
+        gTextMenu[2].render(120,580,260,60);
+        while (SDL_PollEvent(&menu_event))
+        {
+            switch (menu_event.type)
+            {
+                case SDL_QUIT:
+                    return 1;
+                case SDL_MOUSEMOTION:
+                    {
+                     x_mouse = menu_event.motion.x;
+                     y_mouse = menu_event.motion.y;
+                     for (int i=0;i<=NUM_ITEM_MENU;i++)
+                     {
+                         if (x_mouse >=button[i].x && x_mouse <= button[i].x+button[i].w && y_mouse >= button[i].y && y_mouse <=button[i].y+button[i].h)
+                         {
+                             gTextMenu[i].setColor(255,255,0);
+                         }
+                         else
+                         {
+                             gTextMenu[i].setColor(255,255,255);
+                         }
+                     }
+                    }
+                    break;
+                    case SDL_MOUSEBUTTONDOWN:
+                    {
+                         x_mouse = menu_event.motion.x;
+                         y_mouse = menu_event.motion.y;
+                         for (int i=0;i<=NUM_ITEM_MENU;i++)
+                         {
+                             if (x_mouse >=button[i].x && x_mouse <= button[i].x+button[i].w && y_mouse >= button[i].y && y_mouse <=button[i].y+button[i].h)
+                             {
+
+                                 Mix_PlayChannel( -1, gMenuClick, 0 );
+                                 if (i == 2)
+                                 {
+                                     check_tutorial = tutorial();
+                                     if (check_tutorial == 1) return 1;
+                                     else return 0;
+                                 }
+                                 else   return i;
+                             }
+                        }
+
+                   // break;
+                    }
+                    default:
+                    break;
+                    }
+                }
+            SDL_RenderPresent( gRenderer );
+        }
+
+    return 1;
+}
+
+int pause()
+{
+    //std::cout<<"pause";
+    gPause_IMG.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+    SDL_Rect pause_button_rect[NUM_ITEM_PAUSE];
+    pause_button_rect[0] = {50,315,100,100};//HOME
+    pause_button_rect[1] = {200,315,100,100};//RESUME
+    pause_button_rect[2] = {350,315,100,100};//EXIT
+    int x_mouse=0,y_mouse=0;
+    SDL_Color white = { 255,255,255};
+    if( !gTextPause[0].loadFromRenderedText("Home" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+    if( !gTextPause[1].loadFromRenderedText("Resume" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+    if( !gTextPause[2].loadFromRenderedText("Exit" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+        SDL_Rect pause_button_img_rect[NUM_ITEM_PAUSE];
+        pause_button_img_rect[0] = {366,25,105,105};//home
+        pause_button_img_rect[1] = {252,22,109,109};//resume
+        pause_button_img_rect[2] = {29,23,102,107};//exit
+
+        SDL_Event pause_event;
+    while (true)
+    {
+       // gTextPause[0].render(50,450,100,100);
+       // gTextPause[1].render(200,450,100,100);
+       // gTextPause[2].render(350,450,100,100);
+
+        button_pause_img[0].render(50,315,100,100,&pause_button_img_rect[0]);
+        button_pause_img[1].render(200,315,100,100,&pause_button_img_rect[1]);
+        button_pause_img[2].render(350,315,100,100,&pause_button_img_rect[2]);
+
+        while (SDL_PollEvent(&pause_event))
+        {
+            switch (pause_event.type)
+            {
+                case SDL_QUIT:
+                    return 1;
+                case SDL_MOUSEMOTION:
+                    {
+                     x_mouse = pause_event.motion.x;
+                     y_mouse = pause_event.motion.y;
+                     for (int i=0;i<=NUM_ITEM_PAUSE;i++)
+                     {
+                         if (x_mouse >=pause_button_rect[i].x && x_mouse <= pause_button_rect[i].x+pause_button_rect[i].w && y_mouse >=pause_button_rect[i].y && y_mouse <=pause_button_rect[i].y+pause_button_rect[i].h)
+                         {
+                             gTextPause[i].setColor(255,255,0);
+                             button_pause_img[i].setColor(255,255,0);
+                         }
+                         else
+                         {
+                            gTextPause[i].setColor(255,255,255);
+                            button_pause_img[i].setColor(255,255,255);
+                         }
+                     }
+                    }
+                    break;
+                    case SDL_MOUSEBUTTONDOWN:
+                    {
+                         x_mouse = pause_event.motion.x;
+                         y_mouse = pause_event.motion.y;
+                         for (int i=0;i<=NUM_ITEM_PAUSE;i++)
+                         {
+                         if (x_mouse >=pause_button_rect[i].x && x_mouse <= pause_button_rect[i].x+pause_button_rect[i].w && y_mouse >=pause_button_rect[i].y && y_mouse <=pause_button_rect[i].y+pause_button_rect[i].h)
+                             {
+
+                                Mix_PlayChannel( -1, gMenuClick, 0 );
+                                 return i;
+                             }
+                        }
+
+                   // break;
+                    }
+                    default:
+                    break;
+                    }
+                }
+                if (HIGH_SCORE>0)
+                        {
+                            //font score
+                            char_tmp = char_tmp + "HIGH SCORE : " + int_to_str(HIGH_SCORE);
+                            SDL_Color textColor = { 255,255,255};
+                            if( !gTextHighScore.loadFromRenderedText( char_tmp, textColor ) )
+                            {
+                                printf( "Failed to render text texture!\n" );
+
+                            }
+                            gTextHighScore.render(120,240,260,60);
+                            char_tmp="";
+                        }
+                        else
+                        {
+                        //font score
+                            char_tmp = char_tmp + "HIGH SCORE : " + "0";
+                            SDL_Color textColor = { 255,255,255};
+                            if( !gTextHighScore.loadFromRenderedText( char_tmp, textColor ) )
+                            {
+                                printf( "Failed to render text texture!\n" );
+
+                            }
+                             gTextHighScore.render(120,240,260,60);
+                            char_tmp="";
+                        }
+            SDL_RenderPresent( gRenderer );
+        }
+    return 2;
+}
+int game_over()
+{
+    std::cout<<1;
+    gGameOver_IMG.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+    if (SCORE >= HIGH_SCORE) HIGH_SCORE = SCORE;
+    std::cout<<HIGH_SCORE;
+    freopen("highscore.txt","r",stdout);
+    std::cout<<HIGH_SCORE;
+
+    SDL_Rect gameover_button_rect[NUM_ITEM_PAUSE];
+    gameover_button_rect[0] = {50,315,100,100};//HOME
+    gameover_button_rect[1] = {200,315,100,100};//PLAYAGAIN
+    gameover_button_rect[2] = {350,315,100,100};//EXIT
+    int x_mouse=0,y_mouse=0;
+    SDL_Color white = { 255,255,255};
+    if( !gTextGameOver[0].loadFromRenderedText("Home" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+    if( !gTextGameOver[1].loadFromRenderedText("PLAY AGAIN" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+    if( !gTextGameOver[2].loadFromRenderedText("Exit" ,white ) )
+        {
+            printf( "Failed to render text texture!\n" );
+        }
+        SDL_Rect gameover_button_img_rect[NUM_ITEM_GAMEOVER];
+        gameover_button_img_rect[0] = {366,25,105,105};//home
+        gameover_button_img_rect[1] = {23,369,110,104};//play again
+        gameover_button_img_rect[2] = {29,23,102,107};//exit
+
+        SDL_Event gameover_event;
+    while (true)
+    {
+        //gTextGameOver[0].render(50,450,100,100);
+        //gTextGameOver[1].render(200,450,100,100);
+        //gTextGameOver[2].render(350,450,100,100);
+
+        button_gameover_img[0].render(50,315,100,100,&gameover_button_img_rect[0]);
+        button_gameover_img[1].render(200,315,100,100,&gameover_button_img_rect[1]);
+        button_gameover_img[2].render(350,315,100,100,&gameover_button_img_rect[2]);
+
+        while (SDL_PollEvent(&gameover_event))
+        {
+            switch (gameover_event.type)
+            {
+                case SDL_QUIT:
+                    return 1;
+                case SDL_MOUSEMOTION:
+                    {
+                     x_mouse = gameover_event.motion.x;
+                     y_mouse = gameover_event.motion.y;
+                     for (int i=0;i<=NUM_ITEM_GAMEOVER;i++)
+                     {
+                         if (x_mouse >=gameover_button_rect[i].x && x_mouse <= gameover_button_rect[i].x+gameover_button_rect[i].w && y_mouse >=gameover_button_rect[i].y && y_mouse <=gameover_button_rect[i].y+gameover_button_rect[i].h)
+                         {
+                             gTextGameOver[i].setColor(255,255,0);
+                             button_gameover_img[i].setColor(255,255,0);
+                         }
+                         else
+                         {
+                            gTextGameOver[i].setColor(255,255,255);
+                            button_gameover_img[i].setColor(255,255,255);
+                         }
+                     }
+                    }
+                    break;
+                    case SDL_MOUSEBUTTONDOWN:
+                    {
+                         x_mouse = gameover_event.motion.x;
+                         y_mouse = gameover_event.motion.y;
+                         for (int i=0;i<=NUM_ITEM_PAUSE;i++)
+                         {
+                         if (x_mouse >=gameover_button_rect[i].x && x_mouse <= gameover_button_rect[i].x+gameover_button_rect[i].w && y_mouse >=gameover_button_rect[i].y && y_mouse <=gameover_button_rect[i].y+gameover_button_rect[i].h)
+                             {
+
+                                Mix_PlayChannel( -1, gMenuClick, 0 );
+                                 return i;
+                             }
+                        }
+
+                   // break;
+                    }
+                    default:
+                    break;
+                    }
+                }
+            if (HIGH_SCORE>0)
+                        {
+                            //font score
+                            char_tmp = char_tmp + "HIGH SCORE : " + int_to_str(HIGH_SCORE);
+                            SDL_Color textColor = { 255,255,255};
+                            if( !gTextHighScore.loadFromRenderedText( char_tmp, textColor ) )
+                            {
+                                printf( "Failed to render text texture!\n" );
+
+                            }
+                            gTextHighScore.render(120,240,260,60);
+                            char_tmp="";
+                        }
+                        else
+                        {
+                        //font score
+                            char_tmp = char_tmp + "HIGH SCORE : " + "0";
+                            SDL_Color textColor = { 255,255,255};
+                            if( !gTextHighScore.loadFromRenderedText( char_tmp, textColor ) )
+                            {
+                                printf( "Failed to render text texture!\n" );
+
+                            }
+                             gTextHighScore.render(120,240,260,60);
+                            char_tmp="";
+                        }
+            SDL_RenderPresent( gRenderer );
+        }
+    return 2;
+}
 int main( int argc, char* args[] )
 {
+        freopen("highscore.txt","r",stdin);
+		    std::cin>>HIGH_SCORE;
 	//Start up SDL and create window
+
+	//std::cout << HIGH_SCORE <<std:: endl;
 	if( !init() )
 	{
 		printf( "Failed to initialize!\n" );
@@ -533,24 +1031,28 @@ int main( int argc, char* args[] )
 		}
 		else
 		{
+
 		    LTimer fpsTimer;
 		    LTimer capTimer;
 		    int countedFrames = 0;
 			fpsTimer.start();
 			//Main loop flag
 			bool quit = false;
+            int check_pause;
+            int check_gameover;
 
 			//Event handler
 			SDL_Event e;
             std::vector<Shuriken*> amo_list;//me
             std::vector<Shuriken*> amo2_list;//enemy
+            std::vector<Shuriken*> amo2_red_list;//enemy_red_amo
             Shuriken* new_amo;//me
             Shuriken* new_amo2;//enemy
 			Dot dot;
 			Food food;
 			Food food2;
-			food2.set_type(2);
-			//food2.set_type(GetRandom(1,3));
+			//food2.set_type(2);
+			food2.set_type(GetRandom(1,3));
             Shuriken * p_amo;
             int enemy_amo_rate[NUM_ENEMY2];
             int tmp;
@@ -579,39 +1081,30 @@ int main( int argc, char* args[] )
 
             }
 
-			//Set the wall
-
-
+			//Menu
+			int check_menu = menu();
+            if (check_menu == 1) quit = true;
 			//While application is running
 			while( !quit )
 			{
-
 			    capTimer.start();
 				//Handle events on queue
-				while( SDL_PollEvent( &e ) != 0 )
-				{
-					//User requests quit
-					if( e.type == SDL_QUIT )
-					{
-						quit = true;
-					}
-
-					//Handle input for the dot
-					dot.handleEvent( e );
-				}
-				if (quit == true) break;
 
                 //SDL_SetRenderDrawColor( gRenderer, 0xaa, 0xFF, 0xFF, 0xFF );
 				SDL_RenderClear( gRenderer );
 
                 //background
+
                 gBackground.render(0,moveY_BG,SCREEN_WIDTH,SCREEN_HEIGHT);
                 gBackground.render(0,-SCREEN_HEIGHT+moveY_BG,SCREEN_WIDTH,SCREEN_HEIGHT);
                 moveY_BG+=SPEED_BACKGROUND;
                 if (moveY_BG>=SCREEN_HEIGHT) moveY_BG=0;
 
-
+                SDL_Rect pause_button = {225,0,50,50};
+                SDL_Rect pause_button_img_rect = {137,139,114,104};
+                pause_on_play.render(225,0,50,50,&pause_button_img_rect);
                 //fps
+
                 float avgFPS = countedFrames / ( fpsTimer.getTicks() / 1000.f );
 				if( avgFPS > 2000000 )
 				{
@@ -624,6 +1117,7 @@ int main( int argc, char* args[] )
                 if (count_appear_food1>SPEED_APPEAR_FOOD1)
                 {
                     food.set_type(0);
+                   // type_amo = 0;
                     food.move(dot.getRect());
                     food.render();
 
@@ -635,9 +1129,99 @@ int main( int argc, char* args[] )
                     food2.render();
 
                 }
+                if (count_remain_special_amo>time_special_amo) {type_amo = 0;count_remain_special_amo=0;}
+                while( SDL_PollEvent( &e ) != 0 )
+				{
+				    int x_mouse=0,y_mouse=0;
+					//User requests quit
+					switch (e.type)
+                    {
+                        case SDL_QUIT:
+                            quit = true;
+                        case SDL_MOUSEMOTION:
+                            {
+                             x_mouse = e.motion.x;
+                             y_mouse = e.motion.y;
+                             if (x_mouse >=pause_button.x && x_mouse <= pause_button.x+pause_button.w && y_mouse >= pause_button.y && y_mouse <=pause_button.y+pause_button.h)
+                             {
+                                 pause_on_play.setColor(255,255,0);
+                             }
+                             else
+                             {
+                                 pause_on_play.setColor(255,255,255);
+                             }
+                            }
+                        break;
+                        case SDL_MOUSEBUTTONDOWN:
+                        {
+                             x_mouse = e.motion.x;
+                             y_mouse = e.motion.y;
+                             if (x_mouse >=pause_button.x && x_mouse <= pause_button.x+pause_button.w && y_mouse >= pause_button.y && y_mouse <=pause_button.y+pause_button.h)
+                                 {
 
+                                     Mix_PlayChannel( -1, gMenuClick, 0 );
+                                     bool_pause = true;
+                                 }
+                       // break;
+                        }
+                        default:
+                        break;
+                }
+					//Handle input for the dot
+					dot.handleEvent( e );
+
+				}
+				 if (bool_pause == true)
+                    {
+                        check_pause = pause();
+                        if (check_pause == 0)//menu
+                        {
+                            dot.reset();
+                            DOT_HEART = MAX_DOT_HEART;
+                            count_remain_special_amo = 0;
+                            dot.set_type_amo(0);
+                            type_amo=0;
+                            count_appear_food1=0;
+                            count_appear_special_food=0;
+                            dot_amo_rate =0 ;
+                            dot.clear_amo();
+                            SCORE = 0;
+                             for (int t=0;t<NUM_ENEMY1;t++)
+                            {
+                                Enemy *enemy = (m_enemy + t);
+                                enemy->set_type(1);
+                                enemy->set_enemy_vel(ENEMY1_VEL);
+                                enemy->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                                enemy->set_is_move(true);
+                                enemy->set_enemy1_heart(ENEMY1_HEART);
+                            }
+
+                            for (int t2=0;t2<NUM_ENEMY2;t2++)
+                            {
+                                Enemy *enemy2 = (m2_enemy + t2);
+                                enemy2->set_type(2);
+                                enemy2->clear_amo();
+                                enemy2->set_enemy_vel(ENEMY2_VEL);
+                                enemy2->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                                enemy_amo_rate[t2] = 0;
+                                enemy2->set_is_move(true);
+                                enemy2->set_enemy2_heart(ENEMY2_HEART);
+
+                            }
+                            menu();
+
+                        }
+                        else if (check_pause == 2)//exit
+                        {
+                            quit = true;
+
+                            break;
+                        }
+                        bool_pause = false;
+                        check_pause = -1;
+                    }
 				dot.move();
-				if (count_remain_special_amo>time_special_amo) {type_amo = 0;count_remain_special_amo=0;}
+
                 dot.MakeAmo();
                 dot.render();
 
@@ -657,19 +1241,15 @@ int main( int argc, char* args[] )
                     {
                             if (checkCollision(enemy->getRect(),dot.getRect()))
                         {
-                            SCORE++;
+                            Mix_PlayChannel( -1, gEnemyHurt, 0 );
                             if (DOT_HEART <= 1)
                             {
-                            std::cout<<"Game over!";
-
-                            quit = true;
-                            break;
+                                bool_game_over = true;
+                               // break;
                             }
                             else
                             {
-                                //std::cout<<1;
-                                SCORE++;
-                                Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                 enemy->set_is_move(true);
                                 enemy->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-500,-200));
                                 DOT_HEART--;
@@ -677,11 +1257,13 @@ int main( int argc, char* args[] )
                             }
                         }
                     }
-                    if (quit == true ) break;
                 }
 
 //end_ENEMY1
+//std::cout<<bool_game_over;
 //ENEMY 2
+if (bool_game_over == false && quit == false)
+    {
             for (int t2=0;t2<NUM_ENEMY2;t2++)
                 {
                     Enemy *enemy2 = (m2_enemy + t2);
@@ -705,17 +1287,15 @@ int main( int argc, char* args[] )
                     {
                             if (checkCollision(enemy2->getRect(),dot.getRect()))
                             {
+                                 Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                 if (DOT_HEART <= 1)
                                 {
-                                    std::cout<<"Game over!";
-                                    quit = true;
-                                    break;
+                                    bool_game_over = true;
+                                   // break;
                                 }
                                 else
                                 {
                                     //std::cout<<2;
-                                    SCORE++;
-                                    Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                     enemy2->set_is_move(true);
                                     enemy2->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
                                     enemy_amo_rate[t2] = 0;
@@ -736,10 +1316,8 @@ int main( int argc, char* args[] )
                                 {
                                     if (DOT_HEART <= 1)
                                     {
-                                        std::cout<<"Game over!";
-
-                                        quit = true;
-                                        break;
+                                        bool_game_over = true;
+                                        //break;
                                     }
                                     else
                                     {
@@ -756,13 +1334,98 @@ int main( int argc, char* args[] )
                     if (enemy2!=NULL ) enemy2->MakeAmo();
 
                 }
-                if (quit == true ) break;
+    }
+
+
+                if (bool_game_over == true)
+                    {
+                        check_gameover = game_over();
+                        if (check_gameover == 0)//menu
+                        {
+                            dot.reset();
+                            count_remain_special_amo = 0;
+                            type_amo=0;
+                            count_appear_food1=0;
+                            count_appear_special_food=0;
+                            dot_amo_rate =0 ;
+                            dot.clear_amo();
+                            SCORE = 0;
+                             for (int t=0;t<NUM_ENEMY1;t++)
+                            {
+                                Enemy *enemy = (m_enemy + t);
+                                enemy->set_type(1);
+                                enemy->set_enemy_vel(ENEMY1_VEL);
+                                enemy->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                                enemy->set_is_move(true);
+                                enemy->set_enemy1_heart(ENEMY1_HEART);
+                            }
+
+                            for (int t2=0;t2<NUM_ENEMY2;t2++)
+                            {
+                                Enemy *enemy2 = (m2_enemy + t2);
+                                enemy2->set_type(2);
+                                enemy2->clear_amo();
+                                enemy2->set_enemy_vel(ENEMY2_VEL);
+                                enemy2->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                                enemy_amo_rate[t2] = 0;
+                                enemy2->set_is_move(true);
+                                enemy2->set_enemy2_heart(ENEMY2_HEART);
+
+                            }
+                            menu();
+                        }
+                        else if (check_gameover == 1)//play again
+                        {
+
+                           // dot = clone;
+                            dot.reset();
+                            count_remain_special_amo = 0;
+                            dot.set_type_amo(0);
+                            type_amo=0;
+                            count_appear_food1=0;
+                            count_appear_special_food=0;
+                            dot.clear_amo();
+                            SCORE = 0;
+                             for (int t=0;t<NUM_ENEMY1;t++)
+                            {
+                                Enemy *enemy = (m_enemy + t);
+                                enemy->set_type(1);
+                                enemy->set_enemy_vel(ENEMY1_VEL);
+                                enemy->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                                enemy->set_is_move(true);
+                                enemy->set_enemy1_heart(ENEMY1_HEART);
+                            }
+
+                            for (int t2=0;t2<NUM_ENEMY2;t2++)
+                            {
+                                Enemy *enemy2 = (m2_enemy + t2);
+                                enemy2->set_type(2);
+                                enemy2->clear_amo();
+                                enemy2->set_enemy_vel(ENEMY2_VEL);
+                                enemy2->set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                                enemy_amo_rate[t2] = 0;
+                                enemy2->set_is_move(true);
+                                enemy2->set_enemy2_heart(ENEMY2_HEART);
+
+                            }
+                        }
+                        else if (check_gameover == 2 )
+                        {
+                            quit = true;
+                            break;
+                        }
+                        bool_game_over = false;
+                        check_gameover = -1;
+                    }
+//SPECIAL_AMO
                  amo_list = dot.get_amo_list();
                 //std::cout<<amo_list.size();
                 for (int ii=0;ii<amo_list.size();ii++)
                 {
                     new_amo = amo_list.at(ii);
-                        for (int t=0;t<NUM_ENEMY1;t++)
+                   // std::cout<<dot.get_dot_amo_vel();
+                   // std::cout<<new_amo->get_shurikentype();
+                        for (int t=0;t<NUM_ENEMY1;t++)//ENEMY1
                     {
                      //tmp = enemy->get_enemy1_heart();std::cout<<tmp;
                         Enemy *enemy = (m_enemy + t);
@@ -770,7 +1433,7 @@ int main( int argc, char* args[] )
                             {
                                 if (new_amo->get_is_move()== true)
                                 {
-                                    if (type_amo == 0)
+                                    if (new_amo->get_shurikentype() == 0)
                                     {
                                         dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                         DAMAGE_AMO = COMMON_DAMAGE_AMO;
@@ -795,7 +1458,7 @@ int main( int argc, char* args[] )
 
 
                                     }
-                                    if (type_amo == 1) //RED
+                                   else if (new_amo->get_shurikentype()==1) //RED
                                     {
                                         dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                         DAMAGE_AMO = MAX_DAMAGE_AMO;
@@ -817,8 +1480,9 @@ int main( int argc, char* args[] )
                                             }
                                             new_amo->set_is_move(false);
                                         }
+
                                     }
-                                    if (type_amo == 2) //YELLOW
+                                   else if (new_amo->get_shurikentype() == 2) //YELLOW
                                     {
                                         DAMAGE_AMO = COMMON_DAMAGE_AMO;
                                         reload_dot_amo = max_reload_dot_amo;
@@ -841,7 +1505,7 @@ int main( int argc, char* args[] )
                                             new_amo->set_is_move(false);
                                         }
                                     }
-                                    if (type_amo == 3) //Purple
+                                   else if (new_amo->get_shurikentype() == 3) //Purple
                                     {
                                         dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                         DAMAGE_AMO = COMMON_DAMAGE_AMO;
@@ -869,14 +1533,14 @@ int main( int argc, char* args[] )
                                 }
                             }
                         }
-                        for (int t2=0;t2<NUM_ENEMY2;t2++)
+                        for (int t2=0;t2<NUM_ENEMY2;t2++)//ENEMY2
                         {
                             Enemy *enemy2 = (m2_enemy + t2);
                             if (new_amo !=NULL)
                             {
                                 if (new_amo->get_is_move() == true )
                                     {
-                                        if (type_amo == 0)
+                                        if (new_amo->get_shurikentype() == 0)
                                         {
                                             dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                             DAMAGE_AMO = COMMON_DAMAGE_AMO;
@@ -905,7 +1569,7 @@ int main( int argc, char* args[] )
                                             }
 
                                         }
-                                        if (type_amo == 1) // red
+                                      else  if (new_amo->get_shurikentype() == 1) // red
                                         {
                                             dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                             DAMAGE_AMO = MAX_DAMAGE_AMO;
@@ -932,8 +1596,22 @@ int main( int argc, char* args[] )
                                                 //dot.remove_amo(ii);
                                                 new_amo->set_is_move(false);
                                             }
+                                            //
+                                        amo2_red_list = enemy2->get_amo_list();
+                                        for (int tt3=0;tt3<amo2_red_list.size();tt3++)
+                                        {
+                                            new_amo2 = amo2_red_list.at(tt3);
+                                            if (new_amo2 !=NULL)
+                                            {
+                                                if (checkCollision(new_amo2->getRect(),new_amo->getRect()) && new_amo2->get_is_move() == true)
+                                                {
+                                                    enemy2->remove_amo(tt3);
+                                                }
+                                            }
                                         }
-                                         if (type_amo == 2) // yellow
+                                        //
+                                        }
+                                       else  if (new_amo->get_shurikentype() == 2) // yellow
                                         {
                                             dot.set_dot_amo_vel(MAX_DOT_AMO_VEL);
                                             DAMAGE_AMO = COMMON_DAMAGE_AMO;
@@ -961,7 +1639,7 @@ int main( int argc, char* args[] )
                                                 new_amo->set_is_move(false);
                                             }
                                         }
-                                         if (type_amo == 3) // purple
+                                       else  if (new_amo->get_shurikentype() == 3) // purple
                                         {
                                             dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                             DAMAGE_AMO = COMMON_DAMAGE_AMO;
@@ -1058,15 +1736,20 @@ int main( int argc, char* args[] )
 
 
 				SDL_RenderPresent( gRenderer );
-				++countedFrames;
-				for (int t=0;t<NUM_ENEMY2;t++)
+
+
+                if (bool_pause == false)
                 {
-                    enemy_amo_rate[t]++;
+                    for (int t=0;t<NUM_ENEMY2;t++)
+                    {
+                        enemy_amo_rate[t]++;
+                    }
+                    ++countedFrames;
+                    ++dot_amo_rate;
+                    ++count_appear_food1;
+                    ++count_appear_special_food;
+                    if (type_amo != 0) ++count_remain_special_amo;
                 }
-				++dot_amo_rate;
-				++count_appear_food1;
-				++count_appear_special_food;
-				if (type_amo != 0) ++count_remain_special_amo;
 				int frameTicks = capTimer.getTicks();
 				if( frameTicks < SCREEN_TICK_PER_FRAME )
 				{

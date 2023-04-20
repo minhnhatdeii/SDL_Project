@@ -22,6 +22,7 @@ class Enemy
         static const int ENEMY_AMO_VEL = 3;
         int ENEMYHEART1_LOCAL= 2;
         int ENEMYHEART2_LOCAL = 1;
+        int ENEMYHEART3_LOCAL = 1;
 		//Initializes the variables
 
 		Enemy();
@@ -43,6 +44,13 @@ class Enemy
 		void down_enemy2_heart (int DAMAGE_AMO) {ENEMYHEART2_LOCAL-=DAMAGE_AMO;}
 		void set_enemy2_heart (int a) {ENEMYHEART2_LOCAL = a;}
 
+		//enemy 3
+		//enemy2
+
+		int get_enemy3_heart() {return ENEMYHEART3_LOCAL;}
+		void down_enemy3_heart (int DAMAGE_AMO) {ENEMYHEART3_LOCAL-=DAMAGE_AMO;}
+		void set_enemy3_heart (int a) {ENEMYHEART3_LOCAL = a;}
+
 
         void set_xy (int x, int y) {mPosX = x; mPosY = y;}
         int get_y() {return mPosY;}
@@ -60,12 +68,29 @@ class Enemy
 		//Shows the dot on the screen
 		void render();
         void InitAmo();
+        void InitAmo2();//enemy3
         void MakeAmo();
 		void SetAmoList(std::vector<Shuriken*>amo_list) {p_amo_list=amo_list;}
 		std::vector<Shuriken*>get_amo_list() {return p_amo_list;}
         void remove_amo(int &x);
         void set_type(int a) {enemy_type=a;}
         int get_type () {return enemy_type;}
+        void clear_amo()
+        {
+            if (p_amo_list.size()>0)
+            {
+                for (int i=0;i<p_amo_list.size();i++)
+                {
+                    Shuriken* p_amo = p_amo_list.at(i);
+                    if (p_amo!=NULL)
+                    {
+                        delete p_amo;
+                        p_amo=NULL;
+                    }
+                }
+                p_amo_list.clear();
+            }
+        }
 
     private:
 		//The X and Y offsets of the dot
@@ -84,6 +109,8 @@ class Enemy
         int step_img_enemy2=0;
         int count_img_enemy1=1;
         int count_img_enemy2=1;
+        int step_img_enemy3=0;
+        int count_img_enemy3=1;
 };
 
 Enemy::Enemy()
@@ -132,78 +159,121 @@ Enemy:: ~Enemy()
 }
 void Enemy::remove_amo(int &x)
 {
+    if (bool_pause == false)
+    {
         if (x<p_amo_list.size() && x>=0)
         {
-        Shuriken* p_amo = p_amo_list.at(x);
-        p_amo->set_is_move(false);
-        p_amo_list.erase(p_amo_list.begin()+x);
-        if (p_amo !=NULL)
-        {
-            delete p_amo;
-            p_amo = NULL;
+            Shuriken* p_amo = p_amo_list.at(x);
+            p_amo->set_is_move(false);
+            p_amo_list.erase(p_amo_list.begin()+x);
+            if (p_amo !=NULL)
+            {
+                delete p_amo;
+                p_amo = NULL;
+            }
         }
-        }
+    }
 }
 
-void Enemy :: InitAmo()
+void Enemy :: InitAmo()//enemy2
 {
-    Shuriken* p2_amo = new Shuriken();
-    p2_amo->set_amo_vel(ENEMY_AMO_VEL);
-    if (p2_amo)
+    if (bool_pause == false && bool_game_over == false)
     {
+        Shuriken* p2_amo = new Shuriken();
+        p2_amo->set_amo_vel(ENEMY_AMO_VEL);
+        if (p2_amo)
+        {
 
-            p2_amo->setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
-            p2_amo->setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
-            p2_amo->set_is_move(true);
+                p2_amo->setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
+                p2_amo->setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
+                p2_amo->set_is_move(true);
 
-            p_amo_list.push_back(p2_amo);
+                p_amo_list.push_back(p2_amo);
+        }
     }
+}
+void Enemy :: InitAmo2()//enemy3
+{
+    if (bool_pause == false && bool_game_over == false)
+    {
+        Shuriken* p3_amo = new Shuriken();
+        p3_amo->set_amo_vel(ENEMY_AMO_VEL);
+        if (p3_amo)
+        {
 
+                p3_amo->setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
+                p3_amo->setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
+                p3_amo->set_is_move(true);
+
+                p_amo_list.push_back(p3_amo);
+        }
+    }
 }
 void Enemy::move(  )
 {
-
-    //Move the dot up or down
-    if (enemy_type == ENEMY1)
+    if (bool_pause == false&& bool_game_over == false)
     {
-        mPosY += ENEMY_VEL;
-        Enemy_Rect.y = mPosY;
+                //Move the dot up or down
+            if (enemy_type == ENEMY1)
+            {
+                mPosY += ENEMY_VEL;
+                Enemy_Rect.y = mPosY;
 
-        //If the dot collided or went too far up or down
+                //If the dot collided or went too far up or down
 
-        if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
-        {
-            mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
-            mPosY = GetRandom(-400,-100);
-            is_move = true;
-            ENEMYHEART1_LOCAL=2;
+                if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
+                {
+                    mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
+                    mPosY = GetRandom(-400,-100);
+                    is_move = true;
+                    ENEMYHEART1_LOCAL=2;
+                }
+
+                Enemy_Rect.x=mPosX;
+                Enemy_Rect.y=mPosY;
+            }
+            else if (enemy_type == ENEMY2)
+            {
+                mPosY += ENEMY_VEL;
+                Enemy_Rect.y = mPosY;
+
+                //If the dot collided or went too far up or down
+
+                if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
+                {
+                    mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
+                    mPosY = GetRandom(-400,-100);
+                    ENEMYHEART2_LOCAL = 1;
+                    is_move = true;
+                }
+                Enemy_Rect.x=mPosX;
+                Enemy_Rect.y=mPosY;
+            }
+            else if (enemy_type == ENEMY3)
+            {
+                mPosY += ENEMY_VEL;
+                Enemy_Rect.y = mPosY;
+
+                //If the dot collided or went too far up or down
+
+                if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
+                {
+                    mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
+                    mPosY = GetRandom(-400,-100);
+                    ENEMYHEART3_LOCAL = 1;
+                    is_move = true;
+                }
+                Enemy_Rect.x=mPosX;
+                Enemy_Rect.y=mPosY;
+            }
         }
-
-        Enemy_Rect.x=mPosX;
-        Enemy_Rect.y=mPosY;
-    }
-    else if (enemy_type == ENEMY2)
-    {
-        mPosY += ENEMY_VEL;
-        Enemy_Rect.y = mPosY;
-
-        //If the dot collided or went too far up or down
-
-        if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
-        {
-            mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
-            mPosY = GetRandom(-400,-100);
-            ENEMYHEART2_LOCAL = 1;
-            is_move = true;
-        }
-        Enemy_Rect.x=mPosX;
-        Enemy_Rect.y=mPosY;
     }
 
-}
 
 void Enemy::MakeAmo()
 {
+    if (bool_pause == false&& bool_game_over == false)
+    {
             if (enemy_type == ENEMY2)
             {
                  //std::cout<<p_amo_list.size()<<" ";
@@ -230,13 +300,41 @@ void Enemy::MakeAmo()
                 }
             }
 
+    }
+   // if (bool_pause == false&& bool_game_over == false)
+    {
+            if (enemy_type == ENEMY3)
+            {
+                 //std::cout<<p_amo_list.size()<<" ";
+                for (int i=0;i<p_amo_list.size();i++)
+                {
+                    Shuriken* p3_amo = p_amo_list.at(i);
+                    if (p3_amo != NULL)
+                    {
+                        if (p3_amo->get_is_move()==true)
+                        {
+                            p3_amo->move2();
+                            p3_amo->render2();
 
-    //
+                        }
+
+                        else
+                        {
+                            p_amo_list.erase(p_amo_list.begin()+i);
+                            delete p3_amo;
+                            p3_amo=NULL;
+                        }
+
+                    }
+                }
+            }
+
+    }
 }
 
 void Enemy::render()
 {
-    if (enemy_type == 1)
+    if (enemy_type == ENEMY1)
     {
     //Show the dot
         SDL_Rect enemy1_rect;
@@ -250,7 +348,7 @@ void Enemy::render()
         count_img_enemy1++;
         if (step_img_enemy1>=NUM_IMG_ENEMY1) step_img_enemy1=0;
     }
-    else if (enemy_type == 2)
+    else if (enemy_type == ENEMY2)
     {
 
     //Show the dot
@@ -264,6 +362,21 @@ void Enemy::render()
         if (count_img_enemy2>SPEED_ANIMATION) {step_img_enemy2++;count_img_enemy2=1;}
         count_img_enemy2++;
         if (step_img_enemy2 >= NUM_IMG_ENEMY2) step_img_enemy2 = 0;
+    }
+    else if (enemy_type == ENEMY3)
+    {
+
+    //Show the dot
+        SDL_Rect enemy3_rect;
+        enemy3_rect.x=60;
+        enemy3_rect.y=230;
+        enemy3_rect.w=186;
+        enemy3_rect.h=173;
+        gEnemy3Texture[step_img_enemy3].render( mPosX, mPosY, ENEMY_WIDTH, ENEMY_HEIGHT ,&enemy3_rect);
+
+        if (count_img_enemy3>SPEED_ANIMATION) {step_img_enemy3++;count_img_enemy3=1;}
+        count_img_enemy3++;
+        if (step_img_enemy3 >= NUM_IMG_ENEMY3) step_img_enemy3 = 0;
     }
 
 }

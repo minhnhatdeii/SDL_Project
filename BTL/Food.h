@@ -68,53 +68,55 @@ Food::Food()
 }
 void Food::move(SDL_Rect a)
 {
-    //heart
-    if (food_type == HEART)
+    if (bool_pause == false&& bool_game_over == false)
     {
-        mPosY+=mVelY;
-        Food_Rect.x=mPosX;
-        Food_Rect.y=mPosY;
-        if (mPosY+FOOD_HEIGHT>=SCREEN_HEIGHT )
+        if (food_type == HEART)
         {
-            mPosY = -50;
-            mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
-            count_appear_food1=0;
-        }
-        if (checkCollision(Food_Rect,a))
-        {
-            Mix_PlayChannel( -1, gPickItem, 0 );
-            DOT_HEART++;
-            if (DOT_HEART>MAX_DOT_HEART) DOT_HEART = MAX_DOT_HEART;
-            mPosY = -50;
-            mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
-            count_appear_food1=0;
+            mPosY+=mVelY;
+            Food_Rect.x=mPosX;
+            Food_Rect.y=mPosY;
+            if (mPosY+FOOD_HEIGHT>=SCREEN_HEIGHT )
+            {
+                mPosY = -50;
+                mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
+                count_appear_food1=0;
+            }
+            if (checkCollision(Food_Rect,a))
+            {
+                Mix_PlayChannel( -1, gPickItem, 0 );
+                DOT_HEART++;
+                if (DOT_HEART>MAX_DOT_HEART) DOT_HEART = MAX_DOT_HEART;
+                mPosY = -50;
+                mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
+                count_appear_food1=0;
 
+            }
         }
-    }
 
-     if (food_type == RED_ORB || food_type == YELLOW_ORB || food_type == PURPLE_ORB)
-    {
-        mPosY+=mVelY;
-        Food_Rect.x=mPosX;
-        Food_Rect.y=mPosY;
-        if (mPosY+FOOD_HEIGHT>=SCREEN_HEIGHT )
+         if (food_type == RED_ORB || food_type == YELLOW_ORB || food_type == PURPLE_ORB)
         {
-            mPosY = -50;
-            mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
-            count_appear_special_food = 0;
-            food_type=GetRandom(1,3);
-        }
-        if (checkCollision(Food_Rect,a))
-        {
-            //std::cout<<food_type;
-            type_amo=food_type;
-            Mix_PlayChannel( -1, gPickItem, 0 );
-            mPosY = -50;
-            mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
-            count_appear_special_food=0;
-            count_remain_special_amo=0;
-            food_type= (GetRandom(1,3));
+            mPosY+=mVelY;
+            Food_Rect.x=mPosX;
+            Food_Rect.y=mPosY;
+            if (mPosY+FOOD_HEIGHT>=SCREEN_HEIGHT )
+            {
+                mPosY = -50;
+                mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
+                count_appear_special_food = 0;
+                food_type=GetRandom(1,3);
+            }
+            if (checkCollision(Food_Rect,a))
+            {
+                //std::cout<<food_type;
+                type_amo=food_type;
+                Mix_PlayChannel( -1, gPickItem, 0 );
+                mPosY = -50;
+                mPosX=GetRandom(0,SCREEN_WIDTH-FOOD_WIDTH);
+                count_appear_special_food=0;
+                count_remain_special_amo=0;
+                food_type= (GetRandom(1,3));
 
+            }
         }
     }
 }
