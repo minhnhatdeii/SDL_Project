@@ -110,8 +110,8 @@ void Shuriken::move()
         }
         else if (shuriken_type == 1 || shuriken_type == 2 || shuriken_type == 3)
         {
-            SHURIKEN_WIDTH = 30;
-            SHURIKEN_HEIGHT = 60;
+            SHURIKEN_WIDTH = 40;
+            SHURIKEN_HEIGHT = 80;
             mPosY-=SHURIKEN_VEL;
             if (mPosY<=0) {is_move=false;}
             Shuriken_Rect.x=mPosX;
@@ -135,6 +135,9 @@ void Shuriken::move2()
 
 void Shuriken::render()//ta
 {
+    if (bool_game_over == false)
+    {
+
     if (shuriken_type == 0)
     {
         SDL_Rect amo_dot;
@@ -183,9 +186,12 @@ void Shuriken::render()//ta
         count_img_amo_purple++;
         if (step_img_amo_purple >= NUM_IMG_SPECIAL_AMO) step_img_amo_purple = 0;
     }
+    }
 }
 void Shuriken::render2()//dich
 {
+    if (bool_game_over == false)
+    {
     SDL_Rect amo_enemy2;
     amo_enemy2.x=132;
     amo_enemy2.y=273;
@@ -195,5 +201,6 @@ void Shuriken::render2()//dich
 	if (count_img_amo_enemy2>SPEED_ANIMATION) {step_img_amo_enemy2++;count_img_amo_enemy2=1;}
 	count_img_amo_enemy2++;
 	if (step_img_amo_enemy2 >= NUM_IMG_AMO_ENEMY2) step_img_amo_enemy2 = 0;
+    }
 }
 #endif // SHURIKEN_H_

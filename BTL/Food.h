@@ -18,7 +18,7 @@ class Food
 
 		//Initializes the variables
 		Food();
-        //~Food();
+        ~Food();
 		//Moves the dot and checks collision
 		void move(SDL_Rect a);
 
@@ -65,6 +65,20 @@ Food::Food()
     //Initialize the velocityGet
     mVelX = 0;
     mVelY = FOOD_VEL;
+}
+Food::~Food()
+{
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+	//Set collision box dimension
+	Food_Rect = {0,0,0,0};
+
+    food_type = 0;
+    //Initialize the velocityGet
+    mVelX = 0;
+    mVelY = 0;
 }
 void Food::move(SDL_Rect a)
 {
@@ -123,6 +137,8 @@ void Food::move(SDL_Rect a)
 
 void Food::render()
 {
+    if (bool_game_over == false)
+    {
     //HEART
     if (food_type == HEART )
     {
@@ -175,6 +191,6 @@ void Food::render()
         count_img_purple_orb++;
         if (step_img_purple_orb>=NUM_IMG_FOOD_PURPLE) step_img_purple_orb=0;
     }
-
+    }
 }
 #endif // FOOD_H_

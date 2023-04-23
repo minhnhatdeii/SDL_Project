@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1681976926 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
+1682246611 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
 	<SDL.h>
 	<SDL_image.h>
 	<stdio.h>
@@ -10,6 +10,7 @@
 	<vector>
 	<iostream>
 	<SDL_mixer.h>
+	<cmath>
 	"LTexture.h"
 	"Food.h"
 	"Shuriken.h"
@@ -17,17 +18,17 @@
 	"Enemy.h"
 	"Dot.h"
 
-1681405725 c:\users\acer\downloads\ltnc\sdltest\btl\ltexture.h
+1682245445 c:\users\acer\downloads\ltnc\sdltest\btl\ltexture.h
 
-1681638007 c:\users\acer\downloads\ltnc\sdltest\btl\food.h
+1682006399 c:\users\acer\downloads\ltnc\sdltest\btl\food.h
 
-1681791624 c:\users\acer\downloads\ltnc\sdltest\btl\shuriken.h
+1682137762 c:\users\acer\downloads\ltnc\sdltest\btl\shuriken.h
 
 1679578194 c:\users\acer\downloads\ltnc\sdltest\btl\ltimer.h
 
-1681795305 c:\users\acer\downloads\ltnc\sdltest\btl\enemy.h
+1682245610 c:\users\acer\downloads\ltnc\sdltest\btl\enemy.h
 
-1681638834 c:\users\acer\downloads\ltnc\sdltest\btl\dot.h
+1682239305 c:\users\acer\downloads\ltnc\sdltest\btl\dot.h
 	"Shuriken.h"
 
 1680532267 source:c:\users\acer\downloads\ltnc\homework\testtmp.cpp

@@ -18,7 +18,9 @@ class Enemy
         static const int AMO_ENEMY_WIDTH = 20;
 		static const int AMO_ENEMY_HEIGHT = 30;
 		//Maximum axis velocity of the dot
-		int ENEMY_VEL = 2;
+		//int corner_special_move=25;//25do
+		int ENEMY_VEL_Y = 2;
+		double ENEMY_VEL_X = 4.5;
         static const int ENEMY_AMO_VEL = 3;
         int ENEMYHEART1_LOCAL= 2;
         int ENEMYHEART2_LOCAL = 1;
@@ -32,6 +34,7 @@ class Enemy
 
 		//Moves the dot and checks collision
 		void move( );
+		void special_move();
 
 		//enemy1
 		int get_enemy1_heart() {return ENEMYHEART1_LOCAL;}
@@ -57,7 +60,7 @@ class Enemy
         void set_y(int h) {mPosY=h;}
         void set_is_move(bool a) {is_move=a;}
         bool get_is_move() {return is_move;}
-        void set_enemy_vel (int a) {ENEMY_VEL = a;}
+        void set_enemy_vel (int a) {ENEMY_VEL_Y = a;}
         SDL_Rect getRect()
         {
             return Enemy_Rect;
@@ -67,29 +70,20 @@ class Enemy
         int getHeight() {return ENEMY_HEIGHT;}
 		//Shows the dot on the screen
 		void render();
+		void die_render();
         void InitAmo();
         void InitAmo2();//enemy3
         void MakeAmo();
-		void SetAmoList(std::vector<Shuriken*>amo_list) {p_amo_list=amo_list;}
-		std::vector<Shuriken*>get_amo_list() {return p_amo_list;}
+		void SetAmoList(std::vector<Shuriken>amo_list) {p_amo_list=amo_list;}
+		std::vector<Shuriken>get_amo_list() {return p_amo_list;}
         void remove_amo(int &x);
         void set_type(int a) {enemy_type=a;}
         int get_type () {return enemy_type;}
+        void set_explosion(bool b) {explosion=b;}
+        bool get_explosion() {return explosion;}
         void clear_amo()
         {
-            if (p_amo_list.size()>0)
-            {
-                for (int i=0;i<p_amo_list.size();i++)
-                {
-                    Shuriken* p_amo = p_amo_list.at(i);
-                    if (p_amo!=NULL)
-                    {
-                        delete p_amo;
-                        p_amo=NULL;
-                    }
-                }
                 p_amo_list.clear();
-            }
         }
 
     private:
@@ -100,10 +94,11 @@ class Enemy
 		int mVelX, mVelY;
 
         bool is_move;
+        bool explosion;
 		//Dot's collision box
 		SDL_Rect Enemy_Rect;
-
-        std::vector<Shuriken*> p_amo_list;
+        int direction_ramdom;
+        std::vector<Shuriken> p_amo_list;
         int enemy_type;
         int step_img_enemy1=0;
         int step_img_enemy2=0;
@@ -111,6 +106,8 @@ class Enemy
         int count_img_enemy2=1;
         int step_img_enemy3=0;
         int count_img_enemy3=1;
+        int step_img_explosion=0;
+        int count_img_explosion=1;
 };
 
 Enemy::Enemy()
@@ -118,12 +115,14 @@ Enemy::Enemy()
     //Initialize the offsets
     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
     mPosY = 0;
-
+    explosion = false;
 	//Set collision box dimension
 	Enemy_Rect.w = ENEMY_WIDTH;
 	Enemy_Rect.h = ENEMY_HEIGHT;
 
     is_move=true;
+    if (GetRandom(1,2) == 1) direction_ramdom = 1;
+    else direction_ramdom = -1;
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
@@ -142,35 +141,16 @@ Enemy:: ~Enemy()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
-
-    if (p_amo_list.size()>0)
-    {
-        for (int i=0;i<p_amo_list.size();i++)
-        {
-            Shuriken* p_amo = p_amo_list.at(i);
-            if (p_amo!=NULL)
-            {
-                delete p_amo;
-                p_amo=NULL;
-            }
-        }
         p_amo_list.clear();
-    }
 }
 void Enemy::remove_amo(int &x)
 {
-    if (bool_pause == false)
+    if (bool_pause == false && bool_game_over == false)
     {
         if (x<p_amo_list.size() && x>=0)
         {
-            Shuriken* p_amo = p_amo_list.at(x);
-            p_amo->set_is_move(false);
+            p_amo_list[x].set_is_move(false);
             p_amo_list.erase(p_amo_list.begin()+x);
-            if (p_amo !=NULL)
-            {
-                delete p_amo;
-                p_amo = NULL;
-            }
         }
     }
 }
@@ -179,44 +159,41 @@ void Enemy :: InitAmo()//enemy2
 {
     if (bool_pause == false && bool_game_over == false)
     {
-        Shuriken* p2_amo = new Shuriken();
-        p2_amo->set_amo_vel(ENEMY_AMO_VEL);
-        if (p2_amo)
+        if (mPosY>=0 && mPosY +ENEMY_HEIGHT<=SCREEN_HEIGHT)
         {
-
-                p2_amo->setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
-                p2_amo->setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
-                p2_amo->set_is_move(true);
-
-                p_amo_list.push_back(p2_amo);
+            Shuriken p2_amo;
+            p2_amo.set_amo_vel(ENEMY_AMO_VEL);
+            p2_amo.setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
+            p2_amo.setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
+            p2_amo.set_is_move(true);
+            p_amo_list.push_back(p2_amo);
         }
+
     }
 }
 void Enemy :: InitAmo2()//enemy3
 {
     if (bool_pause == false && bool_game_over == false)
     {
-        Shuriken* p3_amo = new Shuriken();
-        p3_amo->set_amo_vel(ENEMY_AMO_VEL);
-        if (p3_amo)
+        if (mPosY>=0 && mPosY +ENEMY_HEIGHT<=SCREEN_HEIGHT)
         {
-
-                p3_amo->setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
-                p3_amo->setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
-                p3_amo->set_is_move(true);
-
-                p_amo_list.push_back(p3_amo);
+            Shuriken p3_amo;
+            p3_amo.set_amo_vel(ENEMY_AMO_VEL);
+            p3_amo.setwidthheight(AMO_ENEMY_WIDTH,AMO_ENEMY_HEIGHT);
+            p3_amo.setRect(this->mPosX+ENEMY_WIDTH/2,this->mPosY);
+            p3_amo.set_is_move(true);
+            p_amo_list.push_back(p3_amo);
         }
     }
 }
 void Enemy::move(  )
 {
-    if (bool_pause == false&& bool_game_over == false)
+    if (bool_pause == false && bool_game_over == false)
     {
                 //Move the dot up or down
             if (enemy_type == ENEMY1)
             {
-                mPosY += ENEMY_VEL;
+                mPosY += ENEMY_VEL_Y;
                 Enemy_Rect.y = mPosY;
 
                 //If the dot collided or went too far up or down
@@ -234,7 +211,7 @@ void Enemy::move(  )
             }
             else if (enemy_type == ENEMY2)
             {
-                mPosY += ENEMY_VEL;
+                mPosY += ENEMY_VEL_Y;
                 Enemy_Rect.y = mPosY;
 
                 //If the dot collided or went too far up or down
@@ -251,7 +228,75 @@ void Enemy::move(  )
             }
             else if (enemy_type == ENEMY3)
             {
-                mPosY += ENEMY_VEL;
+                mPosY += ENEMY_VEL_Y;
+                Enemy_Rect.y = mPosY;
+
+                //If the dot collided or went too far up or down
+
+                if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
+                {
+                    mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
+                    mPosY = GetRandom(-400,-100);
+                    ENEMYHEART3_LOCAL = 1;
+                    is_move = true;
+                }
+                Enemy_Rect.x=mPosX;
+                Enemy_Rect.y=mPosY;
+            }
+        }
+    }
+void Enemy::special_move( )
+{
+    if (bool_pause == false && bool_game_over == false)
+    {
+                //Move the dot up or down
+            if (enemy_type == ENEMY1)
+            {
+                mPosY += (ENEMY_VEL_Y-1);
+                Enemy_Rect.y = mPosY;
+                if (direction_ramdom ==-1)
+                {
+                    mPosX-=ENEMY_VEL_X;
+                }
+                else
+                {
+                    mPosX+=ENEMY_VEL_X;
+                }
+                if (mPosX>SCREEN_WIDTH-ENEMY_WIDTH) direction_ramdom=-1;
+                else if (mPosX<0)direction_ramdom=1;
+                //If the dot collided or went too far up or down
+
+                if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
+                {
+                    mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
+                    mPosY = GetRandom(-400,-100);
+                    is_move = true;
+                    ENEMYHEART1_LOCAL=2;
+                }
+
+                Enemy_Rect.x=mPosX;
+                Enemy_Rect.y=mPosY;
+            }
+            else if (enemy_type == ENEMY2)
+            {
+                mPosY += ENEMY_VEL_Y;
+                Enemy_Rect.y = mPosY;
+
+                //If the dot collided or went too far up or down
+
+                if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
+                {
+                    mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
+                    mPosY = GetRandom(-400,-100);
+                    ENEMYHEART2_LOCAL = 1;
+                    is_move = true;
+                }
+                Enemy_Rect.x=mPosX;
+                Enemy_Rect.y=mPosY;
+            }
+            else if (enemy_type == ENEMY3)
+            {
+                mPosY += ENEMY_VEL_Y;
                 Enemy_Rect.y = mPosY;
 
                 //If the dot collided or went too far up or down
@@ -269,7 +314,6 @@ void Enemy::move(  )
         }
     }
 
-
 void Enemy::MakeAmo()
 {
     if (bool_pause == false&& bool_game_over == false)
@@ -279,54 +323,28 @@ void Enemy::MakeAmo()
                  //std::cout<<p_amo_list.size()<<" ";
                 for (int i=0;i<p_amo_list.size();i++)
                 {
-                    Shuriken* p2_amo = p_amo_list.at(i);
-                    if (p2_amo != NULL)
+
+                    if (p_amo_list[i].get_is_move()==true)
                     {
-                        if (p2_amo->get_is_move()==true)
-                        {
-                        p2_amo->move2();
-                        p2_amo->render2();
-
-                        }
-
-                        else
-                        {
-                            p_amo_list.erase(p_amo_list.begin()+i);
-                            delete p2_amo;
-                            p2_amo=NULL;
-                        }
+                        p_amo_list[i].move2();
+                        p_amo_list[i].render2();
 
                     }
+
+                    else
+                    {
+                        p_amo_list.erase(p_amo_list.begin()+i);
+                    }
+
+
                 }
             }
 
-    }
+
    // if (bool_pause == false&& bool_game_over == false)
-    {
             if (enemy_type == ENEMY3)
             {
-                 //std::cout<<p_amo_list.size()<<" ";
-                for (int i=0;i<p_amo_list.size();i++)
-                {
-                    Shuriken* p3_amo = p_amo_list.at(i);
-                    if (p3_amo != NULL)
-                    {
-                        if (p3_amo->get_is_move()==true)
-                        {
-                            p3_amo->move2();
-                            p3_amo->render2();
 
-                        }
-
-                        else
-                        {
-                            p_amo_list.erase(p_amo_list.begin()+i);
-                            delete p3_amo;
-                            p3_amo=NULL;
-                        }
-
-                    }
-                }
             }
 
     }
@@ -334,6 +352,8 @@ void Enemy::MakeAmo()
 
 void Enemy::render()
 {
+    if (bool_game_over == false)
+    {
     if (enemy_type == ENEMY1)
     {
     //Show the dot
@@ -378,8 +398,18 @@ void Enemy::render()
         count_img_enemy3++;
         if (step_img_enemy3 >= NUM_IMG_ENEMY3) step_img_enemy3 = 0;
     }
-
+    }
 }
 
-
+void Enemy::die_render()
+{
+     if (bool_game_over == false && explosion == true  )
+    {
+        gExplosion[step_img_explosion].render( mPosX, mPosY, ENEMY_WIDTH, ENEMY_HEIGHT );
+        std::cout<<step_img_explosion;
+        if (count_img_explosion>SPEED_ANIMATION) {step_img_explosion++;count_img_explosion=1;}
+        count_img_explosion++;
+        if (step_img_explosion >= NUM_IMG_EXPLOSION) {step_img_explosion = 0;explosion=false;}
+    }
+}
 #endif // ENEMY_H_

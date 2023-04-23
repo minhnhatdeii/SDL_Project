@@ -38,8 +38,8 @@ class Dot
         void MakeAmo();
         void reset();
 
-		void SetAmoList(std::vector<Shuriken*>amo_list) {p_amo_list=amo_list;}
-		std::vector<Shuriken*>get_amo_list() {return p_amo_list;}
+		void SetAmoList(std::vector<Shuriken>amo_list) {p_amo_list=amo_list;}
+		std::vector<Shuriken>get_amo_list() {return p_amo_list;}
         void remove_amo(int &x);
         int get_dot_status() {return dot_status;}
         void set_dot_status(int a) {dot_status = a;}
@@ -49,19 +49,19 @@ class Dot
         int get_dot_amo_vel() {return L_DOT_AMO_VEL;}
         void clear_amo()
         {
-            if (p_amo_list.size()>0)
-            {
-                for (int i=0;i<p_amo_list.size();i++)
-                {
-                    Shuriken* p_amo = p_amo_list.at(i);
-                    if (p_amo!=NULL)
-                    {
-                        delete p_amo;
-                        p_amo=NULL;
-                    }
-                }
                 p_amo_list.clear();
+        }
+        void erase_amo(int &x)
+        {
+            if (bool_pause == false&& bool_game_over == false)
+            {
+                if (x<p_amo_list.size() && x>=0)
+                {
+                    p_amo_list[x].set_is_move(false);
+
+                }
             }
+
         }
 
     private:
@@ -88,7 +88,7 @@ class Dot
         int count_img_dot_right=1;
 
         int dot_type_amo ;
-        std::vector<Shuriken*> p_amo_list;
+        std::vector<Shuriken> p_amo_list;
 };
 void Dot::reset()
 {
@@ -121,17 +121,11 @@ Dot::Dot()
 }
 Dot::~Dot()
 {
-    for (int i=0;i<=p_amo_list.size();i++)
+    for (int i=p_amo_list.size()-1;i>=0;i--)
     {
-        Shuriken* p_amo = p_amo_list.at(i);
-        if (p_amo != NULL)
-        {
-            delete p_amo;
-            p_amo=NULL;
-        }
-        p_amo_list.clear();
+        p_amo_list.pop_back();
     }
-    //Initialize the offsets
+    p_amo_list.clear();
     mPosX = 0;
     mPosY = 0;
 
@@ -146,24 +140,21 @@ Dot::~Dot()
 }
 void Dot::remove_amo(int &x)
 {
+    //std::cout<<1;
     if (bool_pause == false&& bool_game_over == false)
     {
         if (x<p_amo_list.size() && x>=0)
         {
-            Shuriken* p_amo = p_amo_list.at(x);
+            p_amo_list[x].set_is_move(false);
             p_amo_list.erase(p_amo_list.begin()+x);
-            if (p_amo !=NULL)
-            {
-                delete p_amo;
-                p_amo = NULL;
-            }
+
         }
     }
 
 }
 void Dot::handleEvent( SDL_Event& e )
 {
-    if (bool_pause == false&& bool_game_over == false)
+    if (bool_pause == false && bool_game_over == false && quit == false)
     {
         if( e.type == SDL_KEYDOWN  && e.key.repeat == 0)
         {
@@ -239,14 +230,15 @@ void Dot::handleEvent( SDL_Event& e )
         else if( e.type == SDL_MOUSEBUTTONDOWN && dot_amo_rate>=reload_dot_amo )
         {
             //std::cout<<1;
-            Shuriken* p_amo = new Shuriken();
+            Shuriken p_amo;
             if (e.button.button == SDL_BUTTON_LEFT)
             {
                 dot_status = UP;
                 Mix_PlayChannel( -1, gKunai, 0 );
-                p_amo->setRect(mPosX+DOT_WIDTH/2,mPosY);
-                p_amo->set_is_move(true);
-                p_amo->set_shurikentype(type_amo);
+                if (type_amo == 0)p_amo.setRect(mPosX+DOT_WIDTH/2-10,mPosY);
+                else if (type_amo != 0)p_amo.setRect(mPosX+DOT_WIDTH/2-20,mPosY);
+                p_amo.set_is_move(true);
+                p_amo.set_shurikentype(type_amo);
                 //std::cout<<type_amo;
                 p_amo_list.push_back(p_amo);
 
@@ -260,7 +252,7 @@ void Dot::handleEvent( SDL_Event& e )
 
 void Dot::move(  )
 {
-    if (bool_pause == false&& bool_game_over == false)
+    if (bool_pause == false&& bool_game_over == false && quit == false)
     {
             //Move the dot left or right
         mPosX += mVelX;
@@ -296,36 +288,35 @@ void Dot::move(  )
 }
 void Dot:: MakeAmo()
 {
-    if (bool_pause == false&& bool_game_over == false)
+    if (bool_pause == false&& bool_game_over == false && quit == false)
     {
-        //std::cout<<p_amo_list.size();
+       // std::cout<<p_amo_list.size();
         for (int i=0;i<p_amo_list.size();i++)
         {
-            Shuriken*p_amo = p_amo_list.at(i);
-            if (p_amo->get_shurikentype()==2) p_amo->set_amo_vel(MAX_DOT_AMO_VEL);
-            else p_amo->set_amo_vel(COMMON_DOT_AMO_VEL);
-            if (p_amo !=NULL)
-            {
-                if (p_amo->get_is_move())
+
+            if (p_amo_list[i].get_shurikentype()==2) p_amo_list[i].set_amo_vel(MAX_DOT_AMO_VEL);
+            else p_amo_list[i].set_amo_vel(COMMON_DOT_AMO_VEL);
+
+                if (p_amo_list[i].get_is_move()==true)
                 {
-                    //std::cout<<p_amo->get_shurikentype();
-                    p_amo->move();
-                    p_amo->render();
+                    //std::cout<<p_amo_list[i].get_shurikentype();
+                   // std::cout<<"+";
+                    p_amo_list[i].move();
+                    p_amo_list[i].render();
                 }
                 else
                 {
+                    //std::cout<<"-";
                     p_amo_list.erase(p_amo_list.begin()+i);
-
-                    delete p_amo;
-                    p_amo=NULL;
                 }
-            }
+
         }
     }
 }
 void Dot::render()
 {
-    //STAND
+    if (bool_game_over == false)
+    {
     if (dot_move_img == false)
     {
             SDL_Rect stand;
@@ -446,7 +437,7 @@ void Dot::render()
         if (step_img_dot_left>=NUM_IMG_DOT_MOVE) step_img_dot_left=0;
         if (step_img_dot_right>=NUM_IMG_DOT_MOVE) step_img_dot_right=0;
     }
-
+    }
 
 
 }
