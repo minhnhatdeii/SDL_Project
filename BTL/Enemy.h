@@ -252,7 +252,7 @@ void Enemy::special_move( )
                 //Move the dot up or down
             if (enemy_type == ENEMY1)
             {
-                mPosY += (ENEMY_VEL_Y-1);
+                mPosY += (1);
                 Enemy_Rect.y = mPosY;
                 if (direction_ramdom ==-1)
                 {
@@ -405,8 +405,8 @@ void Enemy::die_render()
 {
      if (bool_game_over == false && explosion == true  )
     {
-        gExplosion[step_img_explosion].render( mPosX, mPosY, ENEMY_WIDTH, ENEMY_HEIGHT );
-        std::cout<<step_img_explosion;
+        gExplosion[step_img_explosion].render( mPosX-20, mPosY-20, ENEMY_WIDTH+40, ENEMY_HEIGHT+40 );
+        //std::cout<<step_img_explosion;
         if (count_img_explosion>SPEED_ANIMATION) {step_img_explosion++;count_img_explosion=1;}
         count_img_explosion++;
         if (step_img_explosion >= NUM_IMG_EXPLOSION) {step_img_explosion = 0;explosion=false;}

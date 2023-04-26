@@ -153,7 +153,7 @@ void Shuriken::render()//ta
     else if (shuriken_type == 1)//red;
     {
         SDL_Rect amo_red;
-        amo_red.x=246;
+        amo_red.x=250;
         amo_red.y=157;
         amo_red.w=98;
         amo_red.h=413;
