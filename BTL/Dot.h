@@ -51,13 +51,14 @@ class Dot
         {
                 p_amo_list.clear();
         }
-        void erase_amo(int &x)
+        void erase_amo(int x)
         {
             if (bool_pause == false&& bool_game_over == false)
             {
                 if (x<p_amo_list.size() && x>=0)
                 {
-                    p_amo_list[x].set_is_move(false);
+                    //p_amo_list.erase(p_amo_list.begin()+x);
+                p_amo_list[x].set_is_move(false);
 
                 }
             }

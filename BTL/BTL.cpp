@@ -19,9 +19,9 @@ const int SCREEN_WIDTH = 500;
 const int SCREEN_HEIGHT = 750;
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
-const int MAX_NUM_ENEMY_1 =7;
-const int MAX_NUM_ENEMY_2=7;
-const int MAX_NUM_ENEMY_3=7;
+const int MAX_NUM_ENEMY_1 =5;
+const int MAX_NUM_ENEMY_2=5;
+const int MAX_NUM_ENEMY_3=5;
 int NUM_ENEMY3 =1;
 int NUM_ENEMY1 = 3;
 int NUM_ENEMY2 = 3;
@@ -47,6 +47,7 @@ const int NUM_IMG_FOOD_HEART=8;
 const int NUM_IMG_FOOD_RED=5;
 const int NUM_IMG_FOOD_YELLOW=9;
 const int NUM_IMG_FOOD_PURPLE=9;
+const int NUM_IMG_LEVEL = 9;
 //MENU
 const int NUM_ITEM_MENU = 3;
 const int NUM_ITEM_PAUSE = 3;
@@ -54,6 +55,7 @@ const int NUM_ITEM_GAMEOVER = 3;
 
 bool bool_pause=false;
 bool bool_game_over = false;
+bool fight=true;
 std::string char_tmp;
 int type_amo = 0;
 int time_special_amo = SCREEN_FPS*7;
@@ -64,6 +66,7 @@ int MAX_DOT_AMO_VEL = 20;//dot_amo_vel
 const int MAX_DOT_HEART = 3;
 int SCORE =0;
 int HIGH_SCORE=0;
+int level = 0;
 int time;
 const int MAX_DAMAGE_AMO = 2;
 const int COMMON_DAMAGE_AMO = 1;
@@ -82,7 +85,9 @@ int dot_amo_rate = 0;
 const int common_reload_dot_amo = 15;
 const int max_reload_dot_amo = 0;
 int reload_dot_amo = common_reload_dot_amo;
-
+const int time_limit_render_level = SCREEN_FPS*3;
+int count_time_render_level=0;
+bool level_render_success = true;
 
 std::string path_img_dot_stand="";
 std::string path_img_dot_move="";
@@ -97,6 +102,8 @@ std::string path_img_food_yellow="";
 std::string path_img_food_purple="";
 std::string path_img_special_amo="";
 std::string path_img_explosion="";
+std::string path_img_level="";
+
 
 int moveY_BG=0;
 
@@ -151,6 +158,7 @@ SDL_Renderer* gRenderer = NULL;
 
 LTexture gBackground;
 LTexture gMenu_IMG;
+LTexture Map_IMG;
 LTexture gTutorial_IMG;
 LTexture gPause_IMG;
 LTexture gGameOver_IMG;
@@ -188,6 +196,7 @@ LTexture pause_on_play;
 LTexture button_img;
 LTexture button_pause_img[NUM_ITEM_PAUSE];
 LTexture button_gameover_img[NUM_ITEM_GAMEOVER];
+LTexture LevelTexture[NUM_IMG_LEVEL];
 
 Mix_Chunk *gKunai = NULL;
 
@@ -285,6 +294,11 @@ bool loadMedia()
 {
 	//Loading success flag
 	bool success = true;
+	if( !Map_IMG.loadFromFile( "menu_map.png" ) )
+	{
+		printf( "Failed to load map texture!\n" );
+		success = false;
+	}
     if( !button_img.loadFromFile( "button.png" ) )
 	{
 		printf( "Failed to load button texture!\n" );
@@ -533,6 +547,17 @@ bool loadMedia()
         }
         path_img_amo_enemy2="";
     }
+    //level
+    for (int i=0;i<NUM_IMG_LEVEL;i++)
+    {
+        path_img_level = path_img_level + "level_removebg/level (" + char(i+1+'0') + ").png";
+        if( !LevelTexture[i].loadFromFile(path_img_level ) )
+        {
+            printf( "Failed to load level texture!\n" );
+
+        }
+        path_img_level="";
+    }
 
 	return success;
 }
@@ -543,9 +568,13 @@ void close()
     gGameOver_IMG.free();
     pause_on_play.free();
     button_img.free();
+    Map_IMG.free();
 
 	for (int i=0;i<NUM_IMG_DOT_STAND;i++)
 	gDotTexture_Stand[i].free();
+	for (int i=0;i<NUM_IMG_LEVEL;i++)
+	LevelTexture[i].free();
+
 	for (int i=0;i<NUM_IMG_DOT_MOVE;i++)
 	gDotTexture_Move[i].free();
 
@@ -669,6 +698,66 @@ bool checkCollision( SDL_Rect a, SDL_Rect b )
     return true;
 }
 
+int set_map ()
+{
+    Map_IMG.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+        SDL_Rect button[3];
+        button[0] = {45,277,108,188};
+        button[1] = {190,278,110,191};
+        button[2] = {346,273,110,188};
+    SDL_Event setmap_event;
+    int x_mouse=0,y_mouse=0;
+    bool click = false;
+    while (true)
+    {
+        while (SDL_PollEvent(&setmap_event))
+        {
+            switch (setmap_event.type)
+            {
+                case SDL_QUIT:
+                    return 1;
+                case SDL_MOUSEMOTION:
+                    {
+
+                    }
+                    break;
+                    case SDL_MOUSEBUTTONDOWN:
+                    {
+                         x_mouse = setmap_event.motion.x;
+                         y_mouse = setmap_event.motion.y;
+                         for (int i=0;i<3;i++)
+                         {
+                             if (x_mouse >=button[i].x && x_mouse <= button[i].x+button[i].w && y_mouse >= button[i].y && y_mouse <=button[i].y+button[i].h)
+                             {
+
+                                Mix_PlayChannel( -1, gMenuClick, 0 );
+                                if (i==0)
+                                {
+                                    gBackground.loadFromFile( "theway3.png" );
+                                }
+                                else if (i==1)
+                                {
+                                    gBackground.loadFromFile("theway.jpg");
+                                }
+                                else if (i==2)
+                                {
+                                    gBackground.loadFromFile("theway2.png");
+                                }
+                                return 0;
+                             }
+                         }
+                    break;
+                    }
+                    default:
+                    break;
+                    }
+                }
+            SDL_RenderPresent( gRenderer );
+        }
+
+    return 1;//quit
+}
+
 int tutorial()
 {
     gTutorial_IMG.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -753,6 +842,7 @@ int menu()
         button[2] = {120,580,260,60};
     SDL_Event menu_event;
     int check_tutorial;
+    int check_setmap;
     int x_mouse=0,y_mouse=0;
     while (true)
     {
@@ -769,7 +859,7 @@ int menu()
                     {
                      x_mouse = menu_event.motion.x;
                      y_mouse = menu_event.motion.y;
-                     for (int i=0;i<=NUM_ITEM_MENU;i++)
+                     for (int i=0;i<NUM_ITEM_MENU;i++)
                      {
                          if (x_mouse >=button[i].x && x_mouse <= button[i].x+button[i].w && y_mouse >= button[i].y && y_mouse <=button[i].y+button[i].h)
                          {
@@ -786,17 +876,29 @@ int menu()
                     {
                          x_mouse = menu_event.motion.x;
                          y_mouse = menu_event.motion.y;
-                         for (int i=0;i<=NUM_ITEM_MENU;i++)
+                         for (int i=0;i<NUM_ITEM_MENU;i++)
                          {
                              if (x_mouse >=button[i].x && x_mouse <= button[i].x+button[i].w && y_mouse >= button[i].y && y_mouse <=button[i].y+button[i].h)
                              {
 
                                  Mix_PlayChannel( -1, gMenuClick, 0 );
-                                 if (i == 2)
+                                 if (i == 0)
+                                 {
+                                     check_setmap = set_map();
+                                     if (check_setmap == 1) return 1;
+                                     else return 0;
+                                 }
+                                 else if (i == 2)
                                  {
                                      check_tutorial = tutorial();
                                      if (check_tutorial == 1) return 1;
-                                     else return 0;
+                                     else if (check_tutorial == 0)
+                                     {
+                                         check_setmap = set_map();
+                                         if (check_setmap == 1) return 1;
+                                         else return 0;
+                                    }
+
                                  }
                                  else   return i;
                              }
@@ -863,7 +965,7 @@ int pause()
                     {
                      x_mouse = pause_event.motion.x;
                      y_mouse = pause_event.motion.y;
-                     for (int i=0;i<=NUM_ITEM_PAUSE;i++)
+                     for (int i=0;i<NUM_ITEM_PAUSE;i++)
                      {
                          if (x_mouse >=pause_button_rect[i].x && x_mouse <= pause_button_rect[i].x+pause_button_rect[i].w && y_mouse >=pause_button_rect[i].y && y_mouse <=pause_button_rect[i].y+pause_button_rect[i].h)
                          {
@@ -882,7 +984,7 @@ int pause()
                     {
                          x_mouse = pause_event.motion.x;
                          y_mouse = pause_event.motion.y;
-                         for (int i=0;i<=NUM_ITEM_PAUSE;i++)
+                         for (int i=0;i<NUM_ITEM_PAUSE;i++)
                          {
                          if (x_mouse >=pause_button_rect[i].x && x_mouse <= pause_button_rect[i].x+pause_button_rect[i].w &&
                              y_mouse >=pause_button_rect[i].y && y_mouse <=pause_button_rect[i].y+pause_button_rect[i].h)
@@ -982,7 +1084,7 @@ int game_over()
                     {
                      x_mouse = gameover_event.motion.x;
                      y_mouse = gameover_event.motion.y;
-                     for (int i=0;i<=NUM_ITEM_GAMEOVER;i++)
+                     for (int i=0;i<NUM_ITEM_GAMEOVER;i++)
                      {
                          if (x_mouse >=gameover_button_rect[i].x && x_mouse <= gameover_button_rect[i].x+gameover_button_rect[i].w && y_mouse >=gameover_button_rect[i].y && y_mouse <=gameover_button_rect[i].y+gameover_button_rect[i].h)
                          {
@@ -1001,7 +1103,7 @@ int game_over()
                     {
                          x_mouse = gameover_event.motion.x;
                          y_mouse = gameover_event.motion.y;
-                         for (int i=0;i<=NUM_ITEM_PAUSE;i++)
+                         for (int i=0;i<NUM_ITEM_PAUSE;i++)
                          {
                          if (x_mouse >=gameover_button_rect[i].x && x_mouse <= gameover_button_rect[i].x+gameover_button_rect[i].w && y_mouse >=gameover_button_rect[i].y && y_mouse <=gameover_button_rect[i].y+gameover_button_rect[i].h)
                              {
@@ -1086,8 +1188,7 @@ int main( int argc, char* args[] )
                 PAUSE_ = 2,
                 GAMEOVER_ = 3
             };
-            int type_screen = NONE_;
-
+            int type_screen = MENU_;
 			//Event handler
 			SDL_Event e;
 
@@ -1096,34 +1197,35 @@ int main( int argc, char* args[] )
 			Food food2;
 			//food2.set_type(2);
 			food2.set_type(GetRandom(1,3));
-            int enemy_amo_rate[NUM_ENEMY2];
+            int enemy_amo_rate[MAX_NUM_ENEMY_2];
             int tmp;
-            Enemy m_enemy [NUM_ENEMY1];
-            Enemy m2_enemy [NUM_ENEMY2];
+            int size_dot_amo;
+            Enemy m_enemy [MAX_NUM_ENEMY_1];
+            Enemy m2_enemy [MAX_NUM_ENEMY_2];
             SDL_Rect pause_button = {225,0,50,50};
-            for (int t=0;t<NUM_ENEMY1;t++)//KHOI TAO ENEMY1
+            for (int t=0;t<MAX_NUM_ENEMY_1;t++)//KHOI TAO ENEMY1
             {
                 m_enemy[t].set_type(1);
                 m_enemy[t].set_enemy_vel(ENEMY1_VEL);
-                m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                 m_enemy[t].set_is_move(true);
                 m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
             }
 
-            for (int t2=0;t2<NUM_ENEMY2;t2++)//KHOI TAO ENEMY2
+            for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)//KHOI TAO ENEMY2
             {
                 m2_enemy[t2].set_type(2);
                 m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
+                m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
                 enemy_amo_rate[t2] = 0;
                 m2_enemy[t2].set_is_move(true);
                 m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
-
             }
 
 			//Menu
 			int check_menu = menu();
             if (check_menu == 1) quit = true;
+            else type_screen=NONE_;
 			//While application is running
 			while( !quit )
 			{
@@ -1136,31 +1238,38 @@ int main( int argc, char* args[] )
                             dot.reset();
                             count_remain_special_amo = 0;
                             type_amo=0;
+                            level = 1;
+                            count_time_render_level=0;
+                            level_render_success = false;
                             count_appear_food1=0;
                             count_appear_special_food=0;
                             dot_amo_rate =0 ;
                             dot.clear_amo();
                             SCORE = 0;
-                             for (int t=0;t<NUM_ENEMY1;t++)
+                             for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                             {
-
-                                m_enemy[t].set_type(1);
-                                m_enemy[t].set_enemy_vel(ENEMY1_VEL);
-                                m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
-                                m_enemy[t].set_is_move(true);
-                                m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                if (m_enemy[t].get_is_render()==true)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
                             }
-                            for (int t2=0;t2<NUM_ENEMY2;t2++)
+
+                            for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                             {
-
-                                m2_enemy[t2].set_type(2);
-                                m2_enemy[t2].clear_amo();
-                                m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
-                                enemy_amo_rate[t2] = 0;
-                                m2_enemy[t2].set_is_move(true);
-                                m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
-
+                                if (m2_enemy[t2].get_is_render()==true)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
                             }
                             bool_game_over = false;
                             type_screen = MENU_;
@@ -1173,29 +1282,37 @@ int main( int argc, char* args[] )
                             count_remain_special_amo = 0;
                             dot.set_type_amo(0);
                             type_amo=0;
+                            level = 1;
+                            count_time_render_level=0;
+                            level_render_success = false;
                             count_appear_food1=0;
                             count_appear_special_food=0;
                             dot.clear_amo();
                             SCORE = 0;
-                             for (int t=0;t<NUM_ENEMY1;t++)
+                             for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                             {
-                                m_enemy[t].set_type(1);
-                                m_enemy[t].set_enemy_vel(ENEMY1_VEL);
-                                m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-200));
-                                m_enemy[t].set_is_move(true);
-                                m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                if (m_enemy[t].get_is_render()==true)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
                             }
 
-                            for (int t2=0;t2<NUM_ENEMY2;t2++)
+                            for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                             {
-                                m2_enemy[t2].set_type(2);
-                                m2_enemy[t2].clear_amo();
-                                m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-200));
-                                enemy_amo_rate[t2] = 0;
-                                m2_enemy[t2].set_is_move(true);
-                                m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
-
+                                if (m2_enemy[t2].get_is_render()==true)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
                             }
                             bool_game_over = false;
                             type_screen = NONE_;
@@ -1217,31 +1334,38 @@ int main( int argc, char* args[] )
                             count_remain_special_amo = 0;
                             dot.set_type_amo(0);
                             type_amo=0;
+                            level = 1;
+                            count_time_render_level=0;
+                            level_render_success = false;
                             count_appear_food1=0;
                             count_appear_special_food=0;
                             dot_amo_rate =0 ;
                             dot.clear_amo();
                             SCORE = 0;
-                             for (int t=0;t<NUM_ENEMY1;t++)
+                             for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                             {
-                                m_enemy[t].set_type(1);
-                                m_enemy[t].set_enemy_vel(ENEMY1_VEL);
-                                m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
-                                m_enemy[t].set_is_move(true);
-                                m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                if (m_enemy[t].get_is_render()==true)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
                             }
 
-                            for (int t2=0;t2<NUM_ENEMY2;t2++)
+                            for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                             {
-
-                                m2_enemy[t2].set_type(2);
-                                m2_enemy[t2].clear_amo();
-                                m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-600,-100));
-                                enemy_amo_rate[t2] = 0;
-                                m2_enemy[t2].set_is_move(true);
-                                m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
-
+                                if (m2_enemy[t2].get_is_render()==true)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
                             }
 
                             bool_pause = false;
@@ -1262,10 +1386,14 @@ int main( int argc, char* args[] )
                     check_menu = menu();
                     if (check_menu == 1) quit = true;
                     else type_screen = NONE_;
-
+                    //std::cout<<type_screen;
                 }
+
 			    else if (type_screen == NONE_)
                 {
+
+
+
 			   // std::cout<<4;
 			    capTimer.start();
 
@@ -1273,10 +1401,335 @@ int main( int argc, char* args[] )
 
                 //background
 
+
                 gBackground.render(0,moveY_BG,SCREEN_WIDTH,SCREEN_HEIGHT);
                 gBackground.render(0,-SCREEN_HEIGHT+moveY_BG,SCREEN_WIDTH,SCREEN_HEIGHT);
                 moveY_BG+=SPEED_BACKGROUND;
                 if (moveY_BG>=SCREEN_HEIGHT) moveY_BG=0;
+
+                    //LEVEL 1
+                    if (SCORE==0 && level_render_success==true && level == 0)
+                    {
+                        level = 1;
+                        count_time_render_level=0;
+                        level_render_success = false;
+                    }
+                 if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==1)
+                    {
+                        //std::cout<<1;
+                         SDL_Rect level_rect = {216,154,224,66};
+                        LevelTexture[0].render(73,180,355,96,&level_rect);//level1
+                        count_time_render_level++;
+                        NUM_ENEMY1=5;
+                        NUM_ENEMY2=0;
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(0);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(0);
+                                       // std::cout<<1;
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                        //SDL_RenderPresent( gRenderer );
+                    }
+
+                    //LEVEL 2
+                    if (SCORE==20 && level_render_success==true && level == 1)
+                    {
+                        level = 2;
+                        count_time_render_level=0;
+                        level_render_success = false;
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
+                    }
+                 if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==2)
+                    {
+                        //std::cout<<1;
+                         SDL_Rect level_rect = {216,154,224,66};
+                        LevelTexture[1].render(73,180,355,96,&level_rect);//level2
+                        count_time_render_level++;
+                        NUM_ENEMY1=5;
+                        NUM_ENEMY2=0;
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(1);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(1);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                        //SDL_RenderPresent( gRenderer );
+                    }
+                    //LEVEL 3
+                     if (SCORE==40 && level_render_success==true && level==2)
+                    {
+                        level = 3;
+                        count_time_render_level=0;
+                        level_render_success = false;
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
+                    }
+                 if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==3)
+                    {
+                        //std::cout<<1;
+                         SDL_Rect level_rect = {216,154,224,66};
+                        LevelTexture[2].render(73,180,355,96,&level_rect);//level3
+                        count_time_render_level++;
+                        NUM_ENEMY1=0;
+                        NUM_ENEMY2=5;
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(0);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(0);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                        //SDL_RenderPresent( gRenderer );
+                    }
+                    //LEVEL 4
+                    if (SCORE==60 && level_render_success==true && level==3)
+                    {
+                        level = 4;
+                        count_time_render_level=0;
+                        level_render_success = false;
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
+                    }
+                 if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==4)
+                    {
+                        //std::cout<<1;
+                         SDL_Rect level_rect = {216,154,224,66};
+                        LevelTexture[3].render(73,180,355,96,&level_rect);//level4
+                        count_time_render_level++;
+                        NUM_ENEMY1=0;
+                        NUM_ENEMY2=5;
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(1);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(1);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                        //SDL_RenderPresent( gRenderer );
+                    }
+                    //LEVEL 5
+                    if (SCORE==80 && level_render_success==true && level==4)
+                    {
+                        level = 5;
+                        count_time_render_level=0;
+                        level_render_success = false;
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
+                    }
+                 if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==5)
+                    {
+                        //std::cout<<1;
+                         SDL_Rect level_rect = {216,154,224,66};
+                        LevelTexture[4].render(73,180,355,96,&level_rect);//level5
+                        count_time_render_level++;
+                        NUM_ENEMY1=3;
+                        NUM_ENEMY2=3;
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(0);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(0);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                        //SDL_RenderPresent( gRenderer );
+                    }
+                    //LEVEL 6
+                    if (SCORE==100 && level_render_success==true && level==5)
+                    {
+                        level = 6;
+                        count_time_render_level=0;
+                        level_render_success = false;
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                    m_enemy[t].set_type(1);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    m2_enemy[t2].set_type(2);
+                                    m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    enemy_amo_rate[t2] = 0;
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
+                    }
+                 if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==6)
+                    {
+                        //std::cout<<1;
+                         SDL_Rect level_rect = {216,154,224,66};
+                        LevelTexture[5].render(73,180,355,96,&level_rect);//level6
+                        count_time_render_level++;
+                        NUM_ENEMY1=3;
+                        NUM_ENEMY2=3;
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(1);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(1);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                        //SDL_RenderPresent( gRenderer );
+                    }
+
+                    if (count_time_render_level>time_limit_render_level)
+                    {
+                        level_render_success=true;
+                    }
 
                 SDL_Rect pause_button_img_rect = {137,139,114,104};
                 pause_on_play.render(225,0,50,50,&pause_button_img_rect);
@@ -1369,12 +1822,13 @@ int main( int argc, char* args[] )
 				dot.move();
 
                 dot.render();
+                dot.MakeAmo();
 
 //ENEMY1
             //std::cout<<"quit:"<<quit;
-            for (int t=0;t<NUM_ENEMY1;t++)
+            for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                 {
-                    if (m_enemy[t].get_is_move()==true && m_enemy[t].get_explosion()==false)
+                    if (m_enemy[t].get_is_move()==true && m_enemy[t].get_explosion()==false && m_enemy[t].get_is_render()==true)
                     {
 
                      //tmp = enemy->get_enemy1_heart();std::cout<<tmp;
@@ -1382,7 +1836,7 @@ int main( int argc, char* args[] )
                         m_enemy[t].render();
                         //tmp = enemy->get_enemy1_heart();std::cout<<tmp;
 
-                            if (checkCollision(m_enemy[t].getRect(),dot.getRect()))
+                            if (checkCollision(m_enemy[t].getRect(),dot.getRect()) && level_render_success == true)
                         {
                             Mix_PlayChannel( -1, gEnemyHurt, 0 );
                             DOT_HEART--;
@@ -1412,9 +1866,9 @@ int main( int argc, char* args[] )
 //std::cout<<quit;
 if (quit == false)
 {
-            for (int t2=0;t2<NUM_ENEMY2;t2++)
+            for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                 {
-                    if (m2_enemy[t2].get_is_move()==true  && m2_enemy[t2].get_explosion()==false)
+                    if (m2_enemy[t2].get_is_move()==true  && m2_enemy[t2].get_explosion()==false && m2_enemy[t2].get_is_render()==true)
                     {
                         m2_enemy[t2].move();
                         m2_enemy[t2].render();
@@ -1431,7 +1885,7 @@ if (quit == false)
                         }
 
 
-                            if (checkCollision(m2_enemy[t2].getRect(),dot.getRect()))
+                            if (checkCollision(m2_enemy[t2].getRect(),dot.getRect()) && level_render_success == true)
                             {
                                 DOT_HEART--;
                                 Mix_PlayChannel( -1, gEnemyHurt, 0 );
@@ -1450,7 +1904,8 @@ if (quit == false)
                         for (int tt3=0;tt3<m2_enemy[t2].get_amo_list().size();tt3++)
                         {
 
-                                if (checkCollision(m2_enemy[t2].get_amo_list()[tt3].getRect(),dot.getRect()) && m2_enemy[t2].get_amo_list()[tt3].get_is_move() == true)//Xet va cham cua dan dich voi dino
+                                if (checkCollision(m2_enemy[t2].get_amo_list()[tt3].getRect(),dot.getRect()) &&
+                                    m2_enemy[t2].get_amo_list()[tt3].get_is_move() == true && m2_enemy[t2].get_is_render()==true && level_render_success == true)//Xet va cham cua dan dich voi dino
                                 {
                                     DOT_HEART--;
                                     if (DOT_HEART <= 0)
@@ -1471,7 +1926,7 @@ if (quit == false)
                             }
 
                             if (bool_game_over == true || type_screen!= NONE_) {break;}
-                            m2_enemy[t2].MakeAmo();
+                            if (m2_enemy[t2].get_is_render()==true) m2_enemy[t2].MakeAmo();
 
 
                 }
@@ -1487,24 +1942,24 @@ if (quit == false)
             if (quit == false)
             {
                 //std::cout<<dot.get_amo_list().size();
-                for (int ii=0;ii<dot.get_amo_list().size();ii++)
+                size_dot_amo = dot.get_amo_list().size();
+                for (int ii=0;ii<size_dot_amo;ii++)
                 {
-                        for (int t=0;t<NUM_ENEMY1;t++)//ENEMY1
+                    if (dot.get_amo_list()[ii].get_is_move()== true)
+                    {
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)//ENEMY1
                     {
                      //tmp = enemy->get_enemy1_heart();std::cout<<tmp;
-                        if (m_enemy[t].get_is_move()==true)
+                        if (m_enemy[t].get_is_move()==true && m_enemy[t].get_is_render()==true)
                         {
-                                if (dot.get_amo_list()[ii].get_is_move()== true)
-                                {
                                     if (dot.get_amo_list()[ii].get_shurikentype() == 0)
                                     {
 
                                         dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                         DAMAGE_AMO = COMMON_DAMAGE_AMO;
                                         reload_dot_amo = common_reload_dot_amo;
-                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect()))
+                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect()) && level_render_success == true)
                                         {
-                                             Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                             if (m_enemy[t].get_type()==1)
                                             {
                                                 //std::cout<<enemy->get_enemy1_heart();
@@ -1512,9 +1967,9 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                     Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
-
                                                 }
                                             }
                                             //dot.get_amo_list()[ii].set_is_move(false);
@@ -1530,9 +1985,9 @@ if (quit == false)
                                         dot.set_dot_amo_vel(COMMON_DOT_AMO_VEL);
                                         DAMAGE_AMO = MAX_DAMAGE_AMO;
                                         reload_dot_amo = common_reload_dot_amo;
-                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect()))
+                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect())&& level_render_success == true)
                                         {
-                                             Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                             if (m_enemy[t].get_type()==1)
                                             {
                                                 //std::cout<<m_enemy[t].get_enemy1_heart();
@@ -1540,6 +1995,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                     Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
 
@@ -1556,9 +2012,9 @@ if (quit == false)
                                         DAMAGE_AMO = COMMON_DAMAGE_AMO;
                                         reload_dot_amo = max_reload_dot_amo;
                                         dot.set_dot_amo_vel(MAX_DOT_AMO_VEL);
-                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect()))
+                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect())&& level_render_success == true)
                                         {
-                                             Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                             if (m_enemy[t].get_type()==1)
                                             {
                                                 //std::cout<<m_enemy[t].get_enemy1_heart();
@@ -1566,6 +2022,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                     Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
                                                 }
@@ -1581,9 +2038,9 @@ if (quit == false)
                                         DAMAGE_AMO = COMMON_DAMAGE_AMO;
                                         reload_dot_amo = common_reload_dot_amo;
 
-                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect()))
+                                        if (checkCollision(dot.get_amo_list()[ii].getRect(),m_enemy[t].getRect())&& level_render_success == true)
                                         {
-                                             Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                             if (m_enemy[t].get_type()==1)
                                             {
                                                 //std::cout<<m_enemy[t].get_enemy1_heart();
@@ -1591,6 +2048,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                     Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
 
@@ -1606,9 +2064,9 @@ if (quit == false)
                             }
 
                         }
-                        for (int t2=0;t2<NUM_ENEMY2;t2++)//ENEMY2
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)//ENEMY2
                         {
-                            if (m2_enemy[t2].get_is_move()==true)
+                            if (m2_enemy[t2].get_is_move()==true && m2_enemy[t2].get_is_render()==true)
                             {
                                 if (dot.get_amo_list()[ii].get_is_move() == true )
                                     {
@@ -1619,9 +2077,9 @@ if (quit == false)
                                             reload_dot_amo = common_reload_dot_amo;
                                             if (m2_enemy[t2].get_is_move()==true)
                                         {
-                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect()))
+                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect())&& level_render_success == true)
                                             {
-                                                Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                                 if (m2_enemy[t2].get_type()==2)
                                                 {
                                                     //std::cout<<m2_enemy[t2].get_enemy2_heart();
@@ -1631,6 +2089,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                         Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                         m2_enemy[t2].set_explosion(true);
                                                         m2_enemy[t2].set_is_move(false);
 
@@ -1652,9 +2111,9 @@ if (quit == false)
                                             reload_dot_amo = common_reload_dot_amo;
                                              if (m2_enemy[t2].get_is_move()==true)
                                         {
-                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect()))
+                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect())&& level_render_success == true)
                                             {
-                                                Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                                 if (m2_enemy[t2].get_type()==2)
                                                 {
                                                     //std::cout<<m2_enemy[t2].get_enemy2_heart();
@@ -1664,6 +2123,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                         Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                          m2_enemy[t2].set_explosion(true);
                                                          m2_enemy[t2].set_is_move(false);
 
@@ -1694,9 +2154,9 @@ if (quit == false)
                                             reload_dot_amo = max_reload_dot_amo;
                                              if (m2_enemy[t2].get_is_move()==true)
                                         {
-                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect()))
+                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect())&& level_render_success == true)
                                             {
-                                                Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                                 if (m2_enemy[t2].get_type()==2)
                                                 {
                                                     //std::cout<<m2_enemy[t2].get_enemy2_heart();
@@ -1706,6 +2166,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                         Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                         m2_enemy[t2].set_explosion(true);
                                                         m2_enemy[t2].set_is_move(false);
                                                     }
@@ -1723,9 +2184,9 @@ if (quit == false)
                                             reload_dot_amo = common_reload_dot_amo;
                                              if (m2_enemy[t2].get_is_move()==true)
                                         {
-                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect()))
+                                            if (checkCollision(dot.get_amo_list()[ii].getRect(),m2_enemy[t2].getRect())&& level_render_success == true)
                                             {
-                                                Mix_PlayChannel( -1, gEnemyHurt, 0 );
+
                                                 if (m2_enemy[t2].get_type()==2)
                                                 {
                                                     //std::cout<<m2_enemy[t2].get_enemy2_heart();
@@ -1735,6 +2196,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                         Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                         m2_enemy[t2].set_explosion(true);
                                                         m2_enemy[t2].set_is_move(false);
 
@@ -1751,35 +2213,41 @@ if (quit == false)
                             }
 
                         }
-                        dot.MakeAmo();
+
             }
 //reset enemy and explosion
-                        for (int t=0;t<NUM_ENEMY1;t++)//ENEMY1
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)//ENEMY1
                         {
-                            if (m_enemy[t].get_explosion()==true)
+                            if (m_enemy[t].get_is_render()==true)
                             {
-                                    m_enemy[t].die_render();
-                            }
-                            else if (m_enemy[t].get_explosion()==false && m_enemy[t].get_is_move()==false)
-                            {
-                                m_enemy[t].set_is_move(true);
-                                m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-70),GetRandom(-400,-200));
-                                m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                if (m_enemy[t].get_explosion()==true)
+                                {
+                                        m_enemy[t].die_render();
+                                }
+                                else if (m_enemy[t].get_explosion()==false && m_enemy[t].get_is_move()==false)
+                                {
+                                    m_enemy[t].set_is_move(true);
+                                    m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-70),GetRandom(-300,-100));
+                                    m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
+                                }
                             }
                         }
-                        for (int t2=0;t2<NUM_ENEMY2;t2++)//ENEMY1
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)//ENEMY1
                         {
-                            if (m2_enemy[t2].get_explosion()==true)
+                            if (m2_enemy[t2].get_is_render()==true)
                             {
-                                    m2_enemy[t2].die_render();
-                            }
-                            else if (m2_enemy[t2].get_explosion()==false && m2_enemy[t2].get_is_move()==false)
-                            {
-                                m2_enemy[t2].set_is_move(true);
-                                m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-400,-200));
+                                if (m2_enemy[t2].get_explosion()==true)
+                                {
+                                        m2_enemy[t2].die_render();
+                                }
+                                else if (m2_enemy[t2].get_explosion()==false && m2_enemy[t2].get_is_move()==false)
+                                {
+                                    m2_enemy[t2].set_is_move(true);
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
 
-                                enemy_amo_rate[t2]=0;
-                                m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                    enemy_amo_rate[t2]=0;
+                                    m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
+                                }
                             }
                         }
 
@@ -1864,49 +2332,32 @@ if (quit == false)
 				SDL_RenderPresent( gRenderer );
 //std::cout<<quit;
 
-                        for (int t=0;t<NUM_ENEMY2;t++)
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                         {
-                            if (m2_enemy[t].get_y()>0) enemy_amo_rate[t]++;
+                            if (m2_enemy[t2].get_y()>0 && m2_enemy[t2].get_is_render()==true) enemy_amo_rate[t2]++;
                         }
-                        ++countedFrames;
+
+
                         ++dot_amo_rate;
                         ++count_appear_food1;
                         ++count_appear_special_food;
                         if (type_amo != 0) ++count_remain_special_amo;
 
+
+            }
+                    ++countedFrames;
                     int frameTicks = capTimer.getTicks();
                     if( frameTicks < SCREEN_TICK_PER_FRAME )
                     {
                         //Wait remaining time
                         SDL_Delay( SCREEN_TICK_PER_FRAME - frameTicks );
                     }
-                }
-            }
+        }
 //std::cout<<quit;
 
 
 			//std::cout<<quit;
             //GIAI PHONG
-			//giai phong enemy1
-			for (int t=0;t<NUM_ENEMY1;t++)
-                {
-                    m_enemy[t].~Enemy();
-                }
-
-            //giai phong enemy2
-            /*for (int t2=0;t2<NUM_ENEMY2;t2++)
-                {
-                    m2_enemy[t2].get_amo_list().clear();
-                    m2_enemy[t2].~Enemy();
-                }
-                */
-            //giai phong food
-            food2.~Food();
-            food.~Food();
-            //dot.get_amo_list().clear();
-            //dot.~Dot();
-
-
 
 		}
 		//std::cout<<1;
