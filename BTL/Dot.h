@@ -101,6 +101,7 @@ void Dot::reset()
 	Dot_Rect.h = DOT_HEIGHT;
     dot_move_img = true ; dot_status = UP;
     dot_type_amo = 0;
+    solve_bug=0;
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
@@ -196,10 +197,11 @@ void Dot::handleEvent( SDL_Event& e )
             solve_bug--;
             if (solve_bug==0)
             {
+                dot_status = UP;
                if (mPosY <SCREEN_HEIGHT - DOT_HEIGHT) dot_move_img = false;
                else
                {
-                   dot_move_img = true ; dot_status = UP;
+                   dot_move_img = true ;
                }
             }
             //solve bug advance
@@ -249,6 +251,7 @@ void Dot::handleEvent( SDL_Event& e )
 
         }
     }
+
 }
 
 void Dot::move(  )

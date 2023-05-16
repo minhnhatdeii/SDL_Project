@@ -19,8 +19,11 @@ class Enemy
 		static const int AMO_ENEMY_HEIGHT = 30;
 		//Maximum axis velocity of the dot
 		//int corner_special_move=25;//25do
-		int ENEMY_VEL_Y = 2;
-		double ENEMY_VEL_X = 4.5;
+		int ENEMY_VEL_Y ;
+		//int ENEMY2_VEL_Y = 1;
+		double ENEMY_VEL_X;
+        double ENEMY3_VEL_X ;
+
         static const int ENEMY_AMO_VEL = 3;
         int ENEMYHEART1_LOCAL= 2;
         int ENEMYHEART2_LOCAL = 1;
@@ -67,6 +70,7 @@ class Enemy
         bool get_is_render() {return is_render;}
 
         void set_enemy_vel (int a) {ENEMY_VEL_Y = a;}
+        void set_enemy_velX (int a) {ENEMY_VEL_X=a;}
         SDL_Rect getRect()
         {
             return Enemy_Rect;
@@ -228,7 +232,7 @@ void Enemy::move(  )
                 if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
                 {
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
-                    mPosY = GetRandom(-150,-50);
+                    mPosY = GetRandom(-200,-100);
                     ENEMYHEART2_LOCAL = 1;
                     is_move = true;
                 }
@@ -258,7 +262,7 @@ void Enemy::move(  )
                 //Move the dot up or down
             if (enemy_type == ENEMY1)
             {
-                mPosY += (1);
+                mPosY += (ENEMY_VEL_Y);
                 Enemy_Rect.y = mPosY;
                 if (direction_ramdom ==-1)
                 {
@@ -285,7 +289,7 @@ void Enemy::move(  )
             }
             else if (enemy_type == ENEMY2)
             {
-                mPosY += (1);
+                mPosY += (ENEMY_VEL_Y);
                 Enemy_Rect.y = mPosY;
                 if (direction_ramdom ==-1)
                 {
@@ -302,7 +306,7 @@ void Enemy::move(  )
                 if (mPosY + ENEMY_HEIGHT > SCREEN_HEIGHT || is_move == false)
                 {
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
-                    mPosY = GetRandom(-150,-50);
+                    mPosY = GetRandom(-200,-100);
                     is_move = true;
                     ENEMYHEART2_LOCAL=2;
                 }
@@ -312,15 +316,15 @@ void Enemy::move(  )
             }
             else if (enemy_type == ENEMY3)
             {
-                mPosY += (1);
+                mPosY += (ENEMY_VEL_Y);
                 Enemy_Rect.y = mPosY;
                 if (direction_ramdom ==-1)
                 {
-                    mPosX-=ENEMY_VEL_X;
+                    mPosX-=ENEMY3_VEL_X;
                 }
                 else
                 {
-                    mPosX+=ENEMY_VEL_X;
+                    mPosX+=ENEMY3_VEL_X;
                 }
                 if (mPosX>SCREEN_WIDTH-ENEMY_WIDTH) direction_ramdom=-1;
                 else if (mPosX<0)direction_ramdom=1;
@@ -344,7 +348,7 @@ void Enemy::special_move( )
 
 void Enemy::MakeAmo()
 {
-    if (bool_pause == false&& bool_game_over == false && level_render_success==true)
+    if (bool_pause == false&& bool_game_over == false  )
     {
             if (enemy_type == ENEMY2)
             {

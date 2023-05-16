@@ -19,18 +19,18 @@ const int SCREEN_WIDTH = 500;
 const int SCREEN_HEIGHT = 750;
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
-const int MAX_NUM_ENEMY_1 =5;
-const int MAX_NUM_ENEMY_2=5;
-const int MAX_NUM_ENEMY_3=5;
+const int MAX_NUM_ENEMY_1=6;
+const int MAX_NUM_ENEMY_2=6;
+const int MAX_NUM_ENEMY_3=6;
 int NUM_ENEMY3 =1;
 int NUM_ENEMY1 = 3;
 int NUM_ENEMY2 = 3;
-const int ENEMY1_HEART = 2;
-const int ENEMY1_VEL = 2;
-const double ENEMY2_VEL = 1;
-const int ENEMY2_HEART = 1;
-const double ENEMY3_VEL = 1;
-const int ENEMY3_HEART = 1;
+const int ENEMY1_HEART = 3;
+int ENEMY1_VELY = 2;
+double ENEMY2_VELY = 1;
+const int ENEMY2_HEART = 2;
+const double ENEMY3_VELX = 1;
+const int ENEMY3_HEART = 30;
 
 const int SPEED_BACKGROUND = 1;
 
@@ -66,19 +66,20 @@ int MAX_DOT_AMO_VEL = 20;//dot_amo_vel
 const int MAX_DOT_HEART = 3;
 int SCORE =0;
 int HIGH_SCORE=0;
-int level = 0;
 int time;
-const int MAX_DAMAGE_AMO = 2;
+int point=0;
+double goc=0.466;
+const int MAX_DAMAGE_AMO = 3;
 const int COMMON_DAMAGE_AMO = 1;
 int DAMAGE_AMO = COMMON_DAMAGE_AMO;
 
 const int SPEED_ANIMATION = 5;
 
 int count_appear_food1=0;
-const int SPEED_APPEAR_FOOD1 =SCREEN_FPS*10;
+int SPEED_APPEAR_FOOD1 =SCREEN_FPS*10;
 
 int count_appear_special_food=0;
-const int SPEED_APPEAR_SPECIAL_FOOD =SCREEN_FPS*15;
+int SPEED_APPEAR_SPECIAL_FOOD =SCREEN_FPS*15;
 
 const int reload_enemy_amo =120;
 int dot_amo_rate = 0;
@@ -87,7 +88,9 @@ const int max_reload_dot_amo = 0;
 int reload_dot_amo = common_reload_dot_amo;
 const int time_limit_render_level = SCREEN_FPS*3;
 int count_time_render_level=0;
-bool level_render_success = true;
+bool level_render_success = false;
+int level = 1;
+
 
 std::string path_img_dot_stand="";
 std::string path_img_dot_move="";
@@ -1158,7 +1161,7 @@ int main( int argc, char* args[] )
 		    std::cin>>HIGH_SCORE;
 	//Start up SDL and create window
 
-	//std::cout << HIGH_SCORE <<std:: endl;
+	//std::cout << ENEMY1_VELY/(0.445) <<std:: endl;
 	if( !init() )
 	{
 		printf( "Failed to initialize!\n" );
@@ -1206,7 +1209,8 @@ int main( int argc, char* args[] )
             for (int t=0;t<MAX_NUM_ENEMY_1;t++)//KHOI TAO ENEMY1
             {
                 m_enemy[t].set_type(1);
-                m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                 m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                 m_enemy[t].set_is_move(true);
                 m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1215,7 +1219,8 @@ int main( int argc, char* args[] )
             for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)//KHOI TAO ENEMY2
             {
                 m2_enemy[t2].set_type(2);
-                m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
+                m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
                 m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
                 enemy_amo_rate[t2] = 0;
                 m2_enemy[t2].set_is_move(true);
@@ -1236,7 +1241,9 @@ int main( int argc, char* args[] )
                         if (check_gameover == 0)//menu
                         {
                             dot.reset();
+                            DOT_HEART = MAX_DOT_HEART;
                             count_remain_special_amo = 0;
+                            dot.set_type_amo(0);
                             type_amo=0;
                             level = 1;
                             count_time_render_level=0;
@@ -1251,7 +1258,8 @@ int main( int argc, char* args[] )
                                 if (m_enemy[t].get_is_render()==true)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1264,8 +1272,9 @@ int main( int argc, char* args[] )
                                 {
                                     m2_enemy[t2].set_type(2);
                                     m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
                                     enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
@@ -1279,6 +1288,7 @@ int main( int argc, char* args[] )
 
                            // dot = clone;
                             dot.reset();
+                            DOT_HEART = MAX_DOT_HEART;
                             count_remain_special_amo = 0;
                             dot.set_type_amo(0);
                             type_amo=0;
@@ -1287,6 +1297,7 @@ int main( int argc, char* args[] )
                             level_render_success = false;
                             count_appear_food1=0;
                             count_appear_special_food=0;
+                            dot_amo_rate =0 ;
                             dot.clear_amo();
                             SCORE = 0;
                              for (int t=0;t<MAX_NUM_ENEMY_1;t++)
@@ -1294,7 +1305,8 @@ int main( int argc, char* args[] )
                                 if (m_enemy[t].get_is_render()==true)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1307,8 +1319,9 @@ int main( int argc, char* args[] )
                                 {
                                     m2_enemy[t2].set_type(2);
                                     m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
                                     enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
@@ -1347,7 +1360,8 @@ int main( int argc, char* args[] )
                                 if (m_enemy[t].get_is_render()==true)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1360,8 +1374,9 @@ int main( int argc, char* args[] )
                                 {
                                     m2_enemy[t2].set_type(2);
                                     m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
                                     enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
@@ -1408,19 +1423,19 @@ int main( int argc, char* args[] )
                 if (moveY_BG>=SCREEN_HEIGHT) moveY_BG=0;
 
                     //LEVEL 1
-                    if (SCORE==0 && level_render_success==true && level == 0)
+                   /* if (SCORE==0 && level_render_success==true && level == 0)
                     {
                         level = 1;
                         count_time_render_level=0;
                         level_render_success = false;
-                    }
+                    }*/
                  if (count_time_render_level<=time_limit_render_level && level_render_success==false && level==1)
                     {
                         //std::cout<<1;
                          SDL_Rect level_rect = {216,154,224,66};
                         LevelTexture[0].render(73,180,355,96,&level_rect);//level1
                         count_time_render_level++;
-                        NUM_ENEMY1=5;
+                        NUM_ENEMY1=6;
                         NUM_ENEMY2=0;
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
@@ -1446,16 +1461,18 @@ int main( int argc, char* args[] )
                     }
 
                     //LEVEL 2
-                    if (SCORE==20 && level_render_success==true && level == 1)
+                    if (point>=20 && level_render_success==true && level == 1)
                     {
                         level = 2;
+                        point=0;
                         count_time_render_level=0;
                         level_render_success = false;
 
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1464,10 +1481,11 @@ int main( int argc, char* args[] )
                         for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                                 {
                                     m2_enemy[t2].set_type(2);
-                                    m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
-                                    enemy_amo_rate[t2] = 0;
+                                    //m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
+                                    //enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
                                 }
@@ -1478,7 +1496,7 @@ int main( int argc, char* args[] )
                          SDL_Rect level_rect = {216,154,224,66};
                         LevelTexture[1].render(73,180,355,96,&level_rect);//level2
                         count_time_render_level++;
-                        NUM_ENEMY1=5;
+                        NUM_ENEMY1=6;
                         NUM_ENEMY2=0;
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
@@ -1502,16 +1520,18 @@ int main( int argc, char* args[] )
                         //SDL_RenderPresent( gRenderer );
                     }
                     //LEVEL 3
-                     if (SCORE==40 && level_render_success==true && level==2)
+                     if (point>=20 && level_render_success==true && level==2)
                     {
                         level = 3;
+                        point=0;
                         count_time_render_level=0;
                         level_render_success = false;
 
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1520,10 +1540,11 @@ int main( int argc, char* args[] )
                         for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                                 {
                                     m2_enemy[t2].set_type(2);
-                                    m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
-                                    enemy_amo_rate[t2] = 0;
+                                   // m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
+                                    //enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
                                 }
@@ -1535,7 +1556,7 @@ int main( int argc, char* args[] )
                         LevelTexture[2].render(73,180,355,96,&level_rect);//level3
                         count_time_render_level++;
                         NUM_ENEMY1=0;
-                        NUM_ENEMY2=5;
+                        NUM_ENEMY2=6;
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                    if (t<NUM_ENEMY1)
@@ -1558,16 +1579,18 @@ int main( int argc, char* args[] )
                         //SDL_RenderPresent( gRenderer );
                     }
                     //LEVEL 4
-                    if (SCORE==60 && level_render_success==true && level==3)
+                    if (point>=20 && level_render_success==true && level==3)
                     {
                         level = 4;
+                        point=0;
                         count_time_render_level=0;
                         level_render_success = false;
 
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1576,10 +1599,11 @@ int main( int argc, char* args[] )
                         for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                                 {
                                     m2_enemy[t2].set_type(2);
-                                    m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
-                                    enemy_amo_rate[t2] = 0;
+                                   // m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
+                                    //enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
                                 }
@@ -1591,7 +1615,7 @@ int main( int argc, char* args[] )
                         LevelTexture[3].render(73,180,355,96,&level_rect);//level4
                         count_time_render_level++;
                         NUM_ENEMY1=0;
-                        NUM_ENEMY2=5;
+                        NUM_ENEMY2=6;
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                    if (t<NUM_ENEMY1)
@@ -1614,16 +1638,18 @@ int main( int argc, char* args[] )
                         //SDL_RenderPresent( gRenderer );
                     }
                     //LEVEL 5
-                    if (SCORE==80 && level_render_success==true && level==4)
+                    if (point>=20 && level_render_success==true && level==4)
                     {
                         level = 5;
+                        point=0;
                         count_time_render_level=0;
                         level_render_success = false;
 
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1632,10 +1658,11 @@ int main( int argc, char* args[] )
                         for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                                 {
                                     m2_enemy[t2].set_type(2);
-                                    m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
-                                    enemy_amo_rate[t2] = 0;
+                                    //m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
+                                    //enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
                                 }
@@ -1646,8 +1673,8 @@ int main( int argc, char* args[] )
                          SDL_Rect level_rect = {216,154,224,66};
                         LevelTexture[4].render(73,180,355,96,&level_rect);//level5
                         count_time_render_level++;
-                        NUM_ENEMY1=3;
-                        NUM_ENEMY2=3;
+                        NUM_ENEMY1=4;
+                        NUM_ENEMY2=4;
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                    if (t<NUM_ENEMY1)
@@ -1670,16 +1697,18 @@ int main( int argc, char* args[] )
                         //SDL_RenderPresent( gRenderer );
                     }
                     //LEVEL 6
-                    if (SCORE==100 && level_render_success==true && level==5)
+                    if (point>=30 && level_render_success==true && level==5)
                     {
                         level = 6;
+                        point=0;
                         count_time_render_level=0;
                         level_render_success = false;
 
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                     m_enemy[t].set_type(1);
-                                    m_enemy[t].set_enemy_vel(ENEMY1_VEL);
+                                    m_enemy[t].set_enemy_vel(ENEMY1_VELY);
+                                     m_enemy[t].set_enemy_velX(ENEMY1_VELY/(0.466));
                                     m_enemy[t].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-300,-100));
                                     m_enemy[t].set_is_move(true);
                                     m_enemy[t].set_enemy1_heart(ENEMY1_HEART);
@@ -1688,10 +1717,11 @@ int main( int argc, char* args[] )
                         for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
                                 {
                                     m2_enemy[t2].set_type(2);
-                                    m2_enemy[t2].clear_amo();
-                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VEL);
-                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
-                                    enemy_amo_rate[t2] = 0;
+                                   // m2_enemy[t2].clear_amo();
+                                    m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
+                                    m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                                    m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-200,-100));
+                                    //enemy_amo_rate[t2] = 0;
                                     m2_enemy[t2].set_is_move(true);
                                     m2_enemy[t2].set_enemy2_heart(ENEMY2_HEART);
                                 }
@@ -1702,8 +1732,8 @@ int main( int argc, char* args[] )
                          SDL_Rect level_rect = {216,154,224,66};
                         LevelTexture[5].render(73,180,355,96,&level_rect);//level6
                         count_time_render_level++;
-                        NUM_ENEMY1=3;
-                        NUM_ENEMY2=3;
+                        NUM_ENEMY1=4;
+                        NUM_ENEMY2=4;
                         for (int t=0;t<MAX_NUM_ENEMY_1;t++)
                                 {
                                    if (t<NUM_ENEMY1)
@@ -1724,6 +1754,80 @@ int main( int argc, char* args[] )
                                     else m2_enemy[t2].set_is_render(false);
                                 }
                         //SDL_RenderPresent( gRenderer );
+                    }
+                    //level 7
+                    if (point>=15 && level_render_success==true && level==6)
+                    {
+                        level = 7;
+
+                    }
+                    if (level == 7)
+                    {
+                        SPEED_APPEAR_FOOD1=SCREEN_FPS*7;
+                        SPEED_APPEAR_SPECIAL_FOOD=SCREEN_FPS*10;
+                        level_render_success=true;
+                        point=0;
+                        NUM_ENEMY1=5;
+                        NUM_ENEMY2=5;
+                        //count_time_render_level=0;
+
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(1);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(1);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
+                    }
+                    //level 8
+                    if (point>=15 && level_render_success==true && level==7)
+                    {
+                        level = 8;
+
+                    }
+                    if (level==8)
+                    {
+                        SPEED_APPEAR_FOOD1=SCREEN_FPS*5;
+                        SPEED_APPEAR_SPECIAL_FOOD=SCREEN_FPS*8;
+                        point=0;
+                        level_render_success=true;
+                        NUM_ENEMY1=6;
+                        NUM_ENEMY2=6;
+                        //count_time_render_level=0;
+
+
+                        for (int t=0;t<MAX_NUM_ENEMY_1;t++)
+                                {
+                                   if (t<NUM_ENEMY1)
+                                   {
+                                       m_enemy[t].set_is_render(true);
+                                       m_enemy[t].set_typemove(1);
+                                   }
+                                   else m_enemy[t].set_is_render(false);
+                                }
+
+                        for (int t2=0;t2<MAX_NUM_ENEMY_2;t2++)
+                                {
+                                    if (t2<NUM_ENEMY2)
+                                    {
+                                        m2_enemy[t2].set_is_render(true);
+                                        m2_enemy[t2].set_typemove(1);
+                                    }
+                                    else m2_enemy[t2].set_is_render(false);
+                                }
                     }
 
                     if (count_time_render_level>time_limit_render_level)
@@ -1967,6 +2071,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                    point++;
                                                      Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
@@ -1995,6 +2100,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                    point++;
                                                      Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
@@ -2022,6 +2128,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                    point++;
                                                      Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
@@ -2048,6 +2155,7 @@ if (quit == false)
                                                 if (m_enemy[t].get_enemy1_heart()<=0)
                                                 {
                                                     SCORE++;
+                                                    point++;
                                                      Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                     m_enemy[t].set_explosion(true);
                                                     m_enemy[t].set_is_move(false);
@@ -2089,6 +2197,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                        point++;
                                                          Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                         m2_enemy[t2].set_explosion(true);
                                                         m2_enemy[t2].set_is_move(false);
@@ -2123,6 +2232,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                        point++;
                                                          Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                          m2_enemy[t2].set_explosion(true);
                                                          m2_enemy[t2].set_is_move(false);
@@ -2137,14 +2247,7 @@ if (quit == false)
                                         }
                                             //
 
-                                        for (int tt3=0;tt3<m2_enemy[t2].get_amo_list().size();tt3++)
-                                        {
-                                                if (checkCollision(m2_enemy[t2].get_amo_list()[tt3].getRect(),dot.get_amo_list()[ii].getRect()) &&
-                                                    m2_enemy[t2].get_amo_list()[tt3].get_is_move() == true)
-                                                {
-                                                    m2_enemy[t2].remove_amo(tt3);
-                                                }
-                                        }
+
                                         //
                                         }
                                        else  if (dot.get_amo_list()[ii].get_shurikentype() == 2) // yellow
@@ -2166,6 +2269,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                        point++;
                                                          Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                         m2_enemy[t2].set_explosion(true);
                                                         m2_enemy[t2].set_is_move(false);
@@ -2196,6 +2300,7 @@ if (quit == false)
                                                     if (m2_enemy[t2].get_enemy2_heart()<=0)
                                                     {
                                                         SCORE++;
+                                                        point++;
                                                          Mix_PlayChannel( -1, gEnemyHurt, 0 );
                                                         m2_enemy[t2].set_explosion(true);
                                                         m2_enemy[t2].set_is_move(false);
@@ -2210,6 +2315,17 @@ if (quit == false)
                                     }
                                 }
                             }
+                              if (dot.get_amo_list()[ii].get_shurikentype() == 1 && dot.get_amo_list()[ii].get_is_move() == true) // red
+                                {
+                                    for (int tt3=0;tt3<m2_enemy[t2].get_amo_list().size();tt3++)
+                                    {
+                                            if (checkCollision(m2_enemy[t2].get_amo_list()[tt3].getRect(),dot.get_amo_list()[ii].getRect()) &&
+                                                m2_enemy[t2].get_amo_list()[tt3].get_is_move() == true)
+                                            {
+                                                m2_enemy[t2].remove_amo(tt3);
+                                            }
+                                    }
+                                }
                             }
 
                         }
