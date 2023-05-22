@@ -76,12 +76,12 @@ int DAMAGE_AMO = COMMON_DAMAGE_AMO;
 const int SPEED_ANIMATION = 5;
 
 int count_appear_food1=0;
-int SPEED_APPEAR_FOOD1 =SCREEN_FPS*10;
+int SPEED_APPEAR_FOOD1 =SCREEN_FPS*10;// thoi gian xuat hien trai tim
 
 int count_appear_special_food=0;
-int SPEED_APPEAR_SPECIAL_FOOD =SCREEN_FPS*15;
+int SPEED_APPEAR_SPECIAL_FOOD =SCREEN_FPS*15;//thoi gian xuaat dan ddac biet
 
-const int reload_enemy_amo =120;
+const int reload_enemy_amo =120;//reload dan enemy
 int dot_amo_rate = 0;
 const int common_reload_dot_amo = 15;
 const int max_reload_dot_amo = 0;
@@ -913,6 +913,32 @@ int menu()
                     break;
                     }
                 }
+                if (HIGH_SCORE>0)
+                        {
+                            //font score
+                            char_tmp = char_tmp + "HIGH SCORE : " + int_to_str(HIGH_SCORE*100);
+                            SDL_Color textColor = { 255,255,255};
+                            if( !gTextHighScore.loadFromRenderedText( char_tmp, textColor ) )
+                            {
+                                printf( "Failed to render text texture!\n" );
+
+                            }
+                            gTextHighScore.render(120,240,260,60);
+                            char_tmp="";
+                        }
+                        else
+                        {
+                        //font score
+                            char_tmp = char_tmp + "HIGH SCORE : " + "000";
+                            SDL_Color textColor = { 255,255,255};
+                            if( !gTextHighScore.loadFromRenderedText( char_tmp, textColor ) )
+                            {
+                                printf( "Failed to render text texture!\n" );
+
+                            }
+                             gTextHighScore.render(120,240,260,60);
+                            char_tmp="";
+                        }
             SDL_RenderPresent( gRenderer );
         }
 
@@ -1220,7 +1246,7 @@ int main( int argc, char* args[] )
             {
                 m2_enemy[t2].set_type(2);
                 m2_enemy[t2].set_enemy_vel(ENEMY2_VELY);
-                m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));
+                m2_enemy[t2].set_enemy_velX(ENEMY2_VELY/(0.466));//tan phi = y/x
                 m2_enemy[t2].set_xy(GetRandom(0,SCREEN_WIDTH-50),GetRandom(-150,-50));
                 enemy_amo_rate[t2] = 0;
                 m2_enemy[t2].set_is_move(true);
@@ -1852,7 +1878,6 @@ int main( int argc, char* args[] )
                 if (count_appear_food1>SPEED_APPEAR_FOOD1)
                 {
                     food.set_type(0);
-                   // type_amo = 0;
                     food.move(dot.getRect());
                     food.render();
 

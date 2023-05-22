@@ -216,7 +216,7 @@ void Enemy::move(  )
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
                     mPosY = GetRandom(-300,-100);
                     is_move = true;
-                    ENEMYHEART1_LOCAL=2;
+                    ENEMYHEART1_LOCAL=ENEMY1_HEART;
                 }
 
                 Enemy_Rect.x=mPosX;
@@ -233,7 +233,7 @@ void Enemy::move(  )
                 {
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
                     mPosY = GetRandom(-200,-100);
-                    ENEMYHEART2_LOCAL = 1;
+                    ENEMYHEART2_LOCAL = ENEMY2_HEART;
                     is_move = true;
                 }
                 Enemy_Rect.x=mPosX;
@@ -250,7 +250,7 @@ void Enemy::move(  )
                 {
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
                     mPosY = GetRandom(-400,-100);
-                    ENEMYHEART3_LOCAL = 1;
+                    ENEMYHEART3_LOCAL = ENEMY3_HEART;
                     is_move = true;
                 }
                 Enemy_Rect.x=mPosX;
@@ -281,7 +281,7 @@ void Enemy::move(  )
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
                     mPosY = GetRandom(-300,-100);
                     is_move = true;
-                    ENEMYHEART1_LOCAL=2;
+                    ENEMYHEART1_LOCAL=ENEMY1_HEART;
                 }
 
                 Enemy_Rect.x=mPosX;
@@ -308,7 +308,7 @@ void Enemy::move(  )
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
                     mPosY = GetRandom(-200,-100);
                     is_move = true;
-                    ENEMYHEART2_LOCAL=2;
+                    ENEMYHEART2_LOCAL=ENEMY2_HEART;
                 }
 
                 Enemy_Rect.x=mPosX;
@@ -335,7 +335,7 @@ void Enemy::move(  )
                     mPosX = GetRandom(0,SCREEN_WIDTH-ENEMY_WIDTH);
                     mPosY = GetRandom(-400,-100);
                     is_move = true;
-                    ENEMYHEART3_LOCAL=2;
+                    ENEMYHEART3_LOCAL=ENEMY3_HEART;
                 }
 
                 Enemy_Rect.x=mPosX;

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1683859968 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
+1684508489 source:c:\users\acer\downloads\ltnc\sdltest\btl\btl.cpp
 	<SDL.h>
 	<SDL_image.h>
 	<stdio.h>
@@ -26,7 +26,7 @@
 
 1679578194 c:\users\acer\downloads\ltnc\sdltest\btl\ltimer.h
 
-1683815980 c:\users\acer\downloads\ltnc\sdltest\btl\enemy.h
+1684506380 c:\users\acer\downloads\ltnc\sdltest\btl\enemy.h
 
 1683819316 c:\users\acer\downloads\ltnc\sdltest\btl\dot.h
 	"Shuriken.h"
